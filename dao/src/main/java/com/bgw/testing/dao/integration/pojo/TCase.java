@@ -1,7 +1,11 @@
 package com.bgw.testing.dao.integration.pojo;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import java.util.Date;
 
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class TCase {
     /**
      *
