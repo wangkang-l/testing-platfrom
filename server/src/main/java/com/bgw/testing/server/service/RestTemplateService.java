@@ -21,11 +21,11 @@ public class RestTemplateService {
     private RestTemplate restTemplate;
 
     public ResponseEntity exchange(String URL, HttpMethod httpMethod, Map<String, String> params, Map<String, String> headers, Object body, Class responseType) {
-        return exchange(requestEntity(getURI(URL, params), httpMethod, headers, body), responseType != null ? responseType : String.class);
+        return exchange(requestEntity(getURI(URL, params), httpMethod, headers, body), responseType);
     }
 
     public ResponseEntity exchange(String URL, HttpMethod httpMethod, Map<String, String> params, Map<String, String> headers, Class responseType) {
-        return exchange(requestEntity(getURI(URL, params), httpMethod, headers, null), responseType != null ? responseType : String.class);
+        return exchange(requestEntity(getURI(URL, params), httpMethod, headers, null), responseType);
     }
 
     public ResponseEntity exchange(String URL, HttpMethod httpMethod, Map<String, String> params, Map<String, String> headers, Object body) {
@@ -52,7 +52,7 @@ public class RestTemplateService {
     }
 
     private ResponseEntity exchange(RequestEntity entity, Class responseType) {
-        return restTemplate.exchange(entity, responseType);
+        return restTemplate.exchange(entity, responseType != null ? responseType : String.class);
     }
 
     private RequestEntity requestEntity(URI uri, HttpMethod httpMethod, Map<String, String> headers, Object body) {

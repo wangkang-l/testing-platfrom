@@ -30,16 +30,16 @@ public class ControllerAspect {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
         // 记录下请求内容
-        log.info("URL : {}", request.getRequestURL().toString());
-        log.info("HTTP_METHOD : {}", request.getMethod());
-        log.info("CLASS_METHOD : {}", joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName());
-        log.info("Params : {}", Arrays.toString(joinPoint.getArgs()));
-
+        log.info("URL:{}, HTTP_METHOD:{}, CLASS_METHOD:{}, PARAMS:{}",
+                request.getRequestURL().toString(),
+                request.getMethod(),
+                joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName(),
+                Arrays.toString(joinPoint.getArgs()));
     }
 
     @AfterReturning(returning = "ret", pointcut = "webLog()")
     public void doAfterReturning(Object ret) throws Throwable {
-        // 处理完请求，返回内容
+
     }
 
     //后置异常通知
