@@ -11,6 +11,14 @@ public class BaseMDCUtils {
         MDC.put(LOG_STR, value);
     }
 
+    public static String get(String key) {
+        return MDC.get(key);
+    }
+
+    public static String get() {
+        return MDC.get(LOG_STR);
+    }
+
     public static void put(String key, String value) {
         MDC.put(key, value);
     }
