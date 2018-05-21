@@ -3,52 +3,50 @@
         "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
         "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" >
 <generatorConfiguration>
-
-    <!--mybatis生成工具的帮助文档可以看：-->
-    <!--英文：http://www.mybatis.org/generator/usage/mysql.html-->
-    <!--中文：http://www.mybatis.tk/-->
-    <!--中文：http://mbg.cndocs.tk/-->
-
-
-    <!--添加你本地的驱动jar-->
-    <classPathEntry location="/Users/wangk/Documents/mysql-connector-java-5.1.40/mysql-connector-java-5.1.40-bin.jar"/>
-
+    <properties resource="mybatis-generator/mybatis-generator.properties"/>
+    <!-- classPathEntry:数据库的JDBC驱动 -->
+    <classPathEntry location="${db_driver_path}"/>
     <context id="context" targetRuntime="MyBatis3">
-
-        <!--设置编码格式-->
-        <property name="javaFileEncoding" value="UTF-8"/>
+        <plugin type="org.mybatis.generator.plugins.CaseInsensitiveLikePlugin"/>
+        <plugin type="org.mybatis.generator.plugins.RenameExampleClassPlugin">
+            <property name="searchString" value="Example$"/>
+            <property name="replaceString" value="Criteria"/>
+        </plugin>
 
         <commentGenerator>
-            <property name="suppressAllComments" value="false"/>
+            <!-- 删除代码中带有 代码生成器的注释信息 -->
+            <property name="suppressAllComments" value="true"/>
             <property name="suppressDate" value="true"/>
         </commentGenerator>
-
-        <!--添加你的 JDBC 连接信息-->
-        <jdbcConnection driverClass="com.mysql.jdbc.Driver" connectionURL="jdbc:mysql://114.55.86.166:3366/xb2_user_center" userId="xb_aliyunwrite2" password="xbAliyun@918Write28"/>
-
+        <!--数据库连接信息。 -->
+        <jdbcConnection driverClass="${db_driver}" connectionURL="${db_url}" userId="${db_username}"
+                        password="${db_password}"/>
         <javaTypeResolver>
             <property name="forceBigDecimals" value="false"/>
         </javaTypeResolver>
-
-        <!--要生成的 pojo 模块位置-->
-        <javaModelGenerator targetPackage="com.bgw.testing.dao.usercenter.pojo" targetProject="src/main/java">
-            <property name="enableSubPackages" value="false"/>
+        <!-- targetProject:自动生成代码的位置 -->
+        <javaModelGenerator targetPackage="${model_package}" targetProject="${model_target_project}">
+            <property name="enableSubPackages" value="true"/>
             <property name="trimStrings" value="true"/>
         </javaModelGenerator>
 
-        <!--要生成的 Mapper.xml 文件位置-->
-        <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources">
-            <property name="enableSubPackages" value="false"/>
+        <sqlMapGenerator targetPackage="${sqlmapper_package}" targetProject="${sqlmapper_target_project}">
+            <property name="enableSubPackages" value="true"/>
         </sqlMapGenerator>
 
-        <!--要生成的 Mapper 接口类-->
-        <javaClientGenerator targetPackage="com.bgw.testing.dao.usercenter.mapper" targetProject="src/main/java" type="XMLMAPPER">
-            <property name="enableSubPackages" value="false"/>
+        <javaClientGenerator targetPackage="${dao_package}" targetProject="${dao_target_project}" type="XMLMAPPER">
+            <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
 
+        <table schema="" tableName="ts_variable_list" domainObjectName="TsVariableList"
+            enableCountByExample="false"
+            enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
+        <!-- user_event_record_888888表结构里biz_data，dynamic_info字段是longtext类型，
+        这样处理产生的Xml文件自动会把这个字段转换为VARCHAR； 并且entity里面不会多生成UserEventRecordWithBlobs文件 -->
+            <columnOverride column="config_value" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <!--<columnOverride column="dynamic_info" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+        </table>
+        <!--<table tableName="ts_case_basic_info" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"/>-->
 
-        <!--要根据哪张表生成，要在这里配置-->
-        <!--用百分号表示生成所有表,可以直接省去一个一个写 <table tableName="%" /> -->
-        <table tableName="user_basic_888888" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"/>
     </context>
 </generatorConfiguration>

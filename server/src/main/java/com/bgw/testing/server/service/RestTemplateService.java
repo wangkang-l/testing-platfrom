@@ -1,5 +1,7 @@
 package com.bgw.testing.server.service;
 
+import com.bgw.testing.server.util.BaseJsonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,6 +16,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class RestTemplateService {
 
@@ -52,6 +55,7 @@ public class RestTemplateService {
     }
 
     private ResponseEntity exchange(RequestEntity entity, Class responseType) {
+        log.info("接口请求内容：{}", BaseJsonUtils.writeValue(entity));
         return restTemplate.exchange(entity, responseType != null ? responseType : String.class);
     }
 
@@ -67,7 +71,7 @@ public class RestTemplateService {
             while (entries.hasNext()) {
                 Map.Entry entry = (Map.Entry) entries.next();
                 String key = (String) entry.getKey();
-                String value = (String) entry.getValue();
+                String value = String.valueOf(entry.getValue());
                 finalUrl.append(key).append("=").append(value);
                 if (entries.hasNext()) {
                     finalUrl.append("&");
