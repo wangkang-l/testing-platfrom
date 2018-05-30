@@ -1,6 +1,6 @@
 package com.bgw.testing.server.aspect;
 
-import com.bgw.testing.common.ErrorCode;
+import com.bgw.testing.common.enums.ErrorCode;
 import com.bgw.testing.server.config.ServerException;
 import com.bgw.testing.server.util.BaseJsonUtils;
 import com.bgw.testing.server.util.BaseMDCUtils;
@@ -51,7 +51,11 @@ public class ControllerAspect {
     @AfterThrowing(value = "webLog()", throwing = "e")
     public void afterThrowing(JoinPoint joinPoint, Throwable e) throws ServerException {
         log.error(getTrace(e));
-        throw ServerException.fromKey(ErrorCode.BAD_REQUEST.errorKey, e.getMessage());
+        if (e.getClass().equals(ServerException.class)) {
+
+        } else {
+            throw new ServerException(ErrorCode.BAD_REQUEST.errorKey);
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package com.bgw.testing.server.util;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -150,4 +152,37 @@ public class BaseJsonUtils {
         }
     }
 
+    /**
+     * 根据传入key名称，获取value
+     * @param strJson, @param strkey
+     * @return Object
+     */
+    public Object getValueByKey(Object strJson, String strKey) throws Exception {
+        Object rvalue=parseJson(strJson, strKey);
+        if(rvalue==""){
+            rvalue = "key不存在";
+        }
+        return rvalue;
+    }
+
+    private Object parseJson(Object strJson, String strKey)throws Exception{
+        JsonNode jsonNode =  mapper.readTree(strJson.toString());
+        Iterator<String> keys = jsonNode.fieldNames();
+        Object keyValue = "";
+        while(keys.hasNext()) {
+            String fieldName = keys.next();
+            Object json_value = jsonNode.get(fieldName);
+            if (fieldName.equals(strKey)) {
+                keyValue = json_value;
+                if(keyValue==""){
+                    keyValue = "value为空值";
+                }
+                break;
+            }
+            else if (json_value.toString().substring(0,1).contains("{")){
+                keyValue=parseJson(json_value,strKey);
+            }
+        }
+        return keyValue;
+    }
 }

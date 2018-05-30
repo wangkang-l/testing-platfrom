@@ -21,15 +21,7 @@ import java.util.Map;
 public class TestController {
 
     @Autowired
-    private RedisTestService redisTestService;
-    @Autowired
     private RestTemplateService restTemplateService;
-
-    @ApiOperation(value = "删除Redis指定key")
-    @RequestMapping(value = "/redisInfo", method = RequestMethod.DELETE)
-    public Boolean deleteRedisInfo(@RequestParam String key) {
-        return redisTestService.deleteRedisInfo(key);
-    }
 
     @ApiOperation(value = "自定义接口请求")
     @ApiImplicitParams({

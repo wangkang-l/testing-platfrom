@@ -1,108 +1,161 @@
 package com.bgw.testing.server.service;
 
-import com.bgw.testing.common.ErrorCode;
-import com.bgw.testing.common.dto.CaseBasicDto;
+import com.bgw.testing.common.AppConst;
 import com.bgw.testing.common.dto.CaseContentDto;
-import com.bgw.testing.common.dto.StepDto;
-import com.bgw.testing.common.enums.StepTypeEnum;
-import com.bgw.testing.common.enums.VariableTypeEnum;
-import com.bgw.testing.dao.bgw_automation.mapper.*;
-import com.bgw.testing.dao.bgw_automation.pojo.TsCaseBasicInfo;
-import com.bgw.testing.dao.bgw_automation.pojo.TsStepBasicInfo;
-import com.bgw.testing.dao.bgw_automation.pojo.TsVariableList;
-import com.bgw.testing.server.config.ServerException;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+import com.bgw.testing.common.dto.CaseInfoDto;
+import com.bgw.testing.common.dto.PageInfo;
+import com.bgw.testing.dao.mapper.bgw_automation.TsCaseInfoMapper;
+import com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo;
+import com.bgw.testing.server.util.BaseJsonUtils;
+import com.bgw.testing.server.util.BaseStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.PostConstruct;
+import java.util.*;
 
 @Service
 public class CaseService {
 
     @Autowired
-    private TsCaseBasicInfoMapper tsCaseBasicInfoMapper;
+    private TsCaseInfoMapper tsCaseInfoMapper;
     @Autowired
-    private TsStepBasicInfoMapper tsStepBasicInfoMapper;
-    @Autowired
-    private TsRedisInfoMapper tsRedisInfoMapper;
-    @Autowired
-    private TsMysqlInfoMapper tsMysqlInfoMapper;
-    @Autowired
-    private VariableService variableService;
+    private RedisService redisService;
 
-    public PageInfo<TsCaseBasicInfo> getCaseInfo(String groupId, Integer pageNum, Integer pageSize) {
-        PageHelper.startPage(pageNum, pageSize, "create_time desc");
-        return new PageInfo<TsCaseBasicInfo>(tsCaseBasicInfoMapper.selectByGroupId(groupId));
+    @PostConstruct
+    public void initCaseInfo() {
+        redisService.delPattern(AppConst.DEFAULT_REDIS_DB, AppConst.REDIS_KEY + "*");
+        getAllCaseInfo();
     }
 
-
-    public PageInfo<TsCaseBasicInfo> getAllCaseInfo(Integer pageNum, Integer pageSize) {
-        PageHelper.startPage(pageNum, pageSize, "create_time desc");
-        return new PageInfo<TsCaseBasicInfo>(tsCaseBasicInfoMapper.selectAll());
+    /**
+     * 获取所有用例信息
+     * @return
+     */
+    private List<CaseInfoDto> getAllCaseInfo() {
+        List<TsCaseInfo> tsCaseInfos = tsCaseInfoMapper.selectAll();
+        List<CaseInfoDto> caseInfoDtos = new ArrayList<>();
+        if (tsCaseInfos != null && tsCaseInfos.size() > 0) {
+            tsCaseInfos.forEach(tsCaseInfo -> {
+                CaseInfoDto caseInfoDto = convertToCaseInfoDto(tsCaseInfo);
+                caseInfoDtos.add(caseInfoDto);
+                redisService.hSet(AppConst.DEFAULT_REDIS_DB, AppConst.REDIS_KEY + tsCaseInfo.getGroupId(), tsCaseInfo.getId(), BaseJsonUtils.writeValue(caseInfoDto));
+            });
+        }
+        return caseInfoDtos;
     }
 
-    private CaseContentDto getCaseContent(String caseId) {
-        CaseContentDto caseContentDto = new CaseContentDto();
-        List<TsStepBasicInfo> tsStepBasicInfos = tsStepBasicInfoMapper.selectByCaseId(caseId);
-        List<StepDto> stepDtos = new ArrayList<>();
-        tsStepBasicInfos.parallelStream().forEach(tsStepBasicInfo -> {
-            StepDto stepDto = new StepDto();
-            if (tsStepBasicInfo.getStepType().equals(StepTypeEnum.BASIC.key)) {
-                caseContentDto.setCondition(tsStepBasicInfo.getCondition());
-                Map<String, String> variableList = new HashMap<>();
-                variableService.getVariableList(caseId, VariableTypeEnum.CASE.key).forEach(tsVariableList -> {
-                    variableList.put(tsVariableList.getConfigKey(), tsVariableList.getConfigValue());
-                });
-                caseContentDto.setInitCaseVariables(variableList);
-            } else if (tsStepBasicInfo.getStepType().equals(StepTypeEnum.API.key)) {
+    /**
+     * 分页查询
+     * @param groupId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    public PageInfo<CaseInfoDto> getCaseInfo(String groupId, int pageNum, int pageSize) {
+        Map<String, String> data = redisService.hGetAll(AppConst.DEFAULT_REDIS_DB, AppConst.REDIS_KEY + groupId);
 
-            } else if (tsStepBasicInfo.getStepType().equals(StepTypeEnum.SQL.key)) {
-
-            } else if (tsStepBasicInfo.getStepType().equals(StepTypeEnum.REDIS.key)) {
-
-            } else if (tsStepBasicInfo.getStepType().equals(StepTypeEnum.FUNC.key)) {
-
-            } else {
-                throw ServerException.fromKey(ErrorCode.UNKNOWN_STEP_TYPE.errorKey, ErrorCode.UNKNOWN_STEP_TYPE.description);
+        //根据组内用例按照优先级排序
+        TreeMap<Integer, List<CaseInfoDto>> treeMap = new TreeMap<>();
+        data.keySet().forEach(key -> {
+            CaseInfoDto caseInfoDto = BaseJsonUtils.readValue(data.get(key), CaseInfoDto.class);
+            if (!treeMap.containsKey(caseInfoDto.getPriority())) {
+                treeMap.put(caseInfoDto.getPriority(), new ArrayList<>());
             }
+            treeMap.get(caseInfoDto.getPriority()).add(caseInfoDto);
         });
-        return caseContentDto;
+
+        //相同优先级的用例在根据更新时间倒序排序
+        List<CaseInfoDto> result = new ArrayList<>();
+        treeMap.keySet().forEach(key -> {
+            List<CaseInfoDto> caseInfoDtos = treeMap.get(key);
+            Collections.sort(caseInfoDtos, new CaseSortClass());
+            result.addAll(caseInfoDtos);
+        });
+
+        return new PageInfo<>(result, pageNum, pageSize);
     }
 
-    private StepDto stepBasicInfoConvertToDto(TsStepBasicInfo tsStepBasicInfo) {
-        StepDto stepDto = new StepDto();
-        stepDto.setStepId(tsStepBasicInfo.getId());
-        stepDto.setDescription(tsStepBasicInfo.getDescription());
-        stepDto.setCondition(tsStepBasicInfo.getCondition());
-        stepDto.setApiRequest(tsStepBasicInfo.getInterfaceId());
-        //TODO 待完善
-        stepDto.setExtractor(tsStepBasicInfo.getExtractor());
-        stepDto.setElement(tsStepBasicInfo.getElement());
-        stepDto.setVerifier(tsStepBasicInfo.getVerifier());
-        return stepDto;
+    /**
+     * 新增用例
+     * @param caseInfoDto
+     */
+    public void addCaseInfo(CaseInfoDto caseInfoDto) {
+        caseInfoDto.setCaseId(BaseStringUtils.uuidSimple());
+        caseInfoDto.setCreateTime(new Date());
+        caseInfoDto.setCreateBy("System");
+        caseInfoDto.setUpdateTime(new Date());
+        caseInfoDto.setUpdateBy("System");
+        tsCaseInfoMapper.insertSelective(convertToTsCaseInfo(caseInfoDto));
+        redisService.hSet(AppConst.DEFAULT_REDIS_DB, AppConst.REDIS_KEY + caseInfoDto.getGroupId(), caseInfoDto.getCaseId(), BaseJsonUtils.writeValue(caseInfoDto));
     }
 
-
-    private CaseBasicDto caseBasicInfoConverTotDto(TsCaseBasicInfo tsCaseBasicInfo) {
-        CaseBasicDto caseBasicDto = new CaseBasicDto();
-        caseBasicDto.setCaseId(tsCaseBasicInfo.getId());
-        caseBasicDto.setGroupId(tsCaseBasicInfo.getGroupId());
-        caseBasicDto.setCaseName(tsCaseBasicInfo.getCaseName());
-        caseBasicDto.setDescription(tsCaseBasicInfo.getDescription());
-        caseBasicDto.setPriority(tsCaseBasicInfo.getPriority());
-        caseBasicDto.setInvalid(tsCaseBasicInfo.getIsInvalid());
-        caseBasicDto.setCreateTime(tsCaseBasicInfo.getCreateTime());
-        caseBasicDto.setCreateBy(tsCaseBasicInfo.getCreateBy());
-        caseBasicDto.setUpdateTime(tsCaseBasicInfo.getUpdateTime());
-        caseBasicDto.setUpdateBy(tsCaseBasicInfo.getUpdateBy());
-
-        return caseBasicDto;
+    /**
+     * 更新用例
+     * @param caseInfoDto
+     */
+    public void updateCaseInfo(CaseInfoDto caseInfoDto) {
+        caseInfoDto.setUpdateTime(new Date());
+        caseInfoDto.setUpdateBy("System");
+        tsCaseInfoMapper.updateByPrimaryKeySelective(convertToTsCaseInfo(caseInfoDto));
+        redisService.hSet(AppConst.DEFAULT_REDIS_DB, AppConst.REDIS_KEY + caseInfoDto.getGroupId(), caseInfoDto.getCaseId(), BaseJsonUtils.writeValue(caseInfoDto));
     }
 
+    /**
+     * 删除用例
+     * @param caseId
+     */
+    public void deleteCaseInfo(String groupId, String caseId) {
+        tsCaseInfoMapper.deleteByPrimaryKey(caseId);
+        redisService.hDel(AppConst.DEFAULT_REDIS_DB, AppConst.REDIS_KEY + groupId, caseId);
+    }
+
+    private CaseInfoDto convertToCaseInfoDto(TsCaseInfo tsCaseInfo) {
+        CaseInfoDto caseInfoDto = new CaseInfoDto();
+        caseInfoDto.setCaseId(tsCaseInfo.getId());
+        caseInfoDto.setCaseName(tsCaseInfo.getCaseName());
+        caseInfoDto.setDescription(tsCaseInfo.getDescription());
+        caseInfoDto.setGroupId(tsCaseInfo.getGroupId());
+        caseInfoDto.setPriority(tsCaseInfo.getPriority() == null ? 0 : tsCaseInfo.getPriority());
+        caseInfoDto.setStatus(tsCaseInfo.getStatus());
+        caseInfoDto.setCreateTime(tsCaseInfo.getCreateTime());
+        caseInfoDto.setCreateBy(tsCaseInfo.getCreateBy());
+        caseInfoDto.setUpdateTime(tsCaseInfo.getUpdateTime());
+        caseInfoDto.setUpdateBy(tsCaseInfo.getUpdateBy());
+        caseInfoDto.setCaseContent(BaseJsonUtils.readValue(tsCaseInfo.getCaseContent(), CaseContentDto.class));
+        return caseInfoDto;
+    }
+
+    private TsCaseInfo convertToTsCaseInfo(CaseInfoDto caseInfoDto) {
+        TsCaseInfo tsCaseInfo = new TsCaseInfo();
+        tsCaseInfo.setId(caseInfoDto.getCaseId());
+        tsCaseInfo.setCaseName(caseInfoDto.getCaseName());
+        tsCaseInfo.setDescription(caseInfoDto.getDescription());
+        tsCaseInfo.setGroupId(caseInfoDto.getGroupId());
+        tsCaseInfo.setPriority(caseInfoDto.getPriority() == null ? 0 : caseInfoDto.getPriority());
+        tsCaseInfo.setStatus(caseInfoDto.getStatus());
+        tsCaseInfo.setCreateTime(caseInfoDto.getCreateTime());
+        tsCaseInfo.setCreateBy(caseInfoDto.getCreateBy());
+        tsCaseInfo.setUpdateTime(caseInfoDto.getUpdateTime());
+        tsCaseInfo.setUpdateBy(caseInfoDto.getUpdateBy());
+        tsCaseInfo.setCaseContent(BaseJsonUtils.writeValue(caseInfoDto.getCaseContent()));
+        return tsCaseInfo;
+    }
+
+    public class CaseSortClass implements Comparator {
+        @Override
+        public int compare(Object o1, Object o2) {
+            CaseInfoDto case1 = (CaseInfoDto) o1;
+            CaseInfoDto case2 = (CaseInfoDto) o2;
+            //更新时间倒序排序
+            if (case1.getUpdateTime().getTime() > case2.getUpdateTime().getTime()) {
+                return -1;
+            } else if (case1.getUpdateTime().getTime() < case2.getUpdateTime().getTime()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
 
 }

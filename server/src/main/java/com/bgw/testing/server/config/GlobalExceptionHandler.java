@@ -1,6 +1,6 @@
 package com.bgw.testing.server.config;
 
-import com.bgw.testing.common.ErrorCode;
+import com.bgw.testing.common.enums.ErrorCode;
 import com.bgw.testing.common.ErrorInfo;
 import com.bgw.testing.server.util.BaseMDCUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,15 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = ServerException.class)
     @ResponseBody
+    @ExceptionHandler(value = ServerException.class)
     public ErrorInfo<String> jsonErrorHandler(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, ServerException e) {
         ErrorInfo<String> errorInfo = new ErrorInfo<>();
-        errorInfo.setMsg(ErrorCode.getDescription(e.getErrorKey()) + ":" + e.getErrorMsg());
+        errorInfo.setMsg(e.getErrorMsg());
+//        ErrorCode.getDescription(e.getErrorKey()) + ":" +
         errorInfo.setCode(e.getErrorKey());
         errorInfo.setCorrelationId(BaseMDCUtils.get());
         BaseMDCUtils.clear();
-
         httpServletResponse.setStatus(ErrorCode.getStatusCode(e.getErrorKey()));
         return errorInfo;
     }

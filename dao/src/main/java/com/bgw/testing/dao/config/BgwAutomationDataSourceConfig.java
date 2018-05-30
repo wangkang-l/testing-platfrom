@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @MapperScan(basePackages = BgwAutomationDataSourceConfig.PACKAGE, sqlSessionFactoryRef = "bgwAutomationSqlSessionFactory")
 public class BgwAutomationDataSourceConfig {
 
-    static final String PACKAGE ="com.bgw.testing.dao.bgw_automation.mapper";
+    static final String PACKAGE ="com.bgw.testing.dao.mapper.bgw_automation";
     static final String MAPPER_LOCATION = "classpath:mapper/bgw_automation/*.xml";
 
     @Bean(name = "bgwAutomationDataSource")

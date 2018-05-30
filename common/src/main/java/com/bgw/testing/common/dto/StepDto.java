@@ -10,12 +10,12 @@ import lombok.Data;
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class StepDto {
 
-    private String stepId;
     private String description;
     private String condition;
     private String stepType;
     private String func;
-    private String apiRequest;
+    private String intefaceId;
+    private String templateId;
     private RedisInfoDto redisInfo;
     private MySqlInfoDto mysqlInfo;
     private String keyInGlobalVariable;
