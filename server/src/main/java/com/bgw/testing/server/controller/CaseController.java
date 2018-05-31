@@ -4,7 +4,6 @@ import com.bgw.testing.common.AppConst;
 import com.bgw.testing.common.dto.CaseInfoDto;
 import com.bgw.testing.common.dto.PageInfo;
 import com.bgw.testing.server.service.CaseService;
-import com.bgw.testing.server.service.RedisService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +17,6 @@ public class CaseController {
 
     @Autowired
     private CaseService caseService;
-    @Autowired
-    private RedisService redisService;
 
     @ApiOperation(value = "根据组ID获取用例信息")
     @RequestMapping(value = "/info/{group_id}", method = RequestMethod.GET)

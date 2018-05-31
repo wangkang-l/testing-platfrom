@@ -10,7 +10,7 @@ import java.util.List;
 @Valid
 public class PageInfo<T> {
 
-    private int total;
+    private Integer total;
     private List<T> data;
 
     public PageInfo() {}

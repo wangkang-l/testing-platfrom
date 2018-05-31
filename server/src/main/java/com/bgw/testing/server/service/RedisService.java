@@ -85,13 +85,32 @@ public class RedisService {
                 var5 = 0L;
                 return var5;
             }
-
             var5 = 1L;
         } finally {
             IOUtils.closeQuietly(jedis);
         }
 
         return var5;
+    }
+
+    public Long setEx(Integer dbIndex, String key, Object value, int expireInSecond) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(key), "key不能为空");
+        Preconditions.checkArgument(value != null, "value不能为null");
+        Jedis jedis = null;
+
+        Long var6;
+        try {
+            jedis = this.jedisPool(dbIndex).getResource();
+            if (!"ok".equalsIgnoreCase(jedis.setex(key, expireInSecond, BaseJsonUtils.writeValue(value)))) {
+                var6 = 0L;
+                return var6;
+            }
+            var6 = 1L;
+        } finally {
+            IOUtils.closeQuietly(jedis);
+        }
+
+        return var6;
     }
 
     public Long del(Integer dbIndex, String key) {
@@ -198,15 +217,15 @@ public class RedisService {
         }
     }
 
-    public List<String> lRange(Integer dbIndex, String key, Long min, Long max) {
+    public List<String> lRange(Integer dbIndex, String key, Long start, Long stop) {
         Preconditions.checkArgument(StringUtils.isNotBlank(key), "key不能为空");
-        Preconditions.checkArgument(min <= max, "min不能大于max");
+        Preconditions.checkArgument(start <= stop, "start不能大于stop");
         Jedis jedis = null;
 
         List<String> var6;
         try {
             jedis = this.jedisPool(dbIndex).getResource();
-            var6 = jedis.lrange(key, min, max);
+            var6 = jedis.lrange(key, start, stop);
         } finally {
             IOUtils.closeQuietly(jedis);
         }

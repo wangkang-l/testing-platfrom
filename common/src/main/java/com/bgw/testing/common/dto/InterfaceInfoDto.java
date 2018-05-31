@@ -4,23 +4,22 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import org.springframework.http.HttpMethod;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Date;
+import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class ApiRequestDto {
-
+public class InterfaceInfoDto {
     private String interfaceId;
     private String description;
-    private HttpMethod method;
-    private String url;
-    private Map<String, String> query = new HashMap<>();
-    private Map<String, String> headers = new HashMap<>();
+    private String path;
+    private String method;
     private String body;
-    private Integer expectedStatusCode;
-
+    private Date createTime;
+    private String createBy;
+    private Date updateTime;
+    private String updateBy;
+    private List<InterfaceParamDto> interfaceParamDtoList;
 }

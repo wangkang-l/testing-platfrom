@@ -40,7 +40,7 @@ public class RestTemplateService {
     }
 
     private MultiValueMap getHeaders(Map<String, String> headers) {
-        MultiValueMap multiValueMap = new LinkedMultiValueMap();
+        MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
 
         multiValueMap.set(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
         multiValueMap.set(HttpHeaders.ACCEPT, "application/json");

@@ -54,7 +54,7 @@ public class ControllerAspect {
         if (e.getClass().equals(ServerException.class)) {
 
         } else {
-            throw new ServerException(ErrorCode.BAD_REQUEST.errorKey);
+            throw new ServerException(ErrorCode.BAD_REQUEST);
         }
     }
 

@@ -38,10 +38,10 @@
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
 
-        <table schema="" tableName="ts_case_info" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
+        <table schema="" tableName="ts_variable_list" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">
         <!-- user_event_record_888888表结构里biz_data，dynamic_info字段是longtext类型，
         这样处理产生的Xml文件自动会把这个字段转换为VARCHAR； 并且entity里面不会多生成UserEventRecordWithBlobs文件 -->
-            <columnOverride column="case_content" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="config_value" javaType="java.lang.String" jdbcType="VARCHAR" />
             <!--<columnOverride column="dynamic_info" javaType="java.lang.String" jdbcType="VARCHAR" />-->
         </table>
         <!--<table tableName="ts_case_basic_info" enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"/>-->

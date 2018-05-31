@@ -1,5 +1,6 @@
 package com.bgw.testing.common.dto;
 
+import com.bgw.testing.common.enums.RedisAction;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -16,8 +17,12 @@ public class RedisInfoDto {
     private Integer dbIndex;
     @NotBlank(message = "key不能为空")
     private String key;
+    private String field;
     private String value;
     private Integer expire;
-    private String action;
+    private RedisAction action;
+    private Long start;
+    private Long stop;
+    private Integer index;
 
 }
