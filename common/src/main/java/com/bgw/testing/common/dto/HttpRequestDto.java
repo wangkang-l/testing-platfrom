@@ -12,9 +12,8 @@ import java.util.Map;
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class ApiRequestDto {
+public class HttpRequestDto {
 
-    private String interfaceId;
     private String description;
     private HttpMethod method;
     private String url;

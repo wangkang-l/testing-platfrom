@@ -1,18 +1,22 @@
 package com.bgw.testing.server.service;
 
 import com.bgw.testing.common.dto.GroupInfoDto;
+import com.bgw.testing.common.enums.ErrorCode;
 import com.bgw.testing.dao.mapper.bgw_automation.TsCaseInfoMapper;
 import com.bgw.testing.dao.mapper.bgw_automation.TsGroupInfoMapper;
 import com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo;
 import com.bgw.testing.dao.pojo.bgw_automation.TsGroupInfo;
+import com.bgw.testing.server.GroupContext;
 import com.bgw.testing.server.util.BaseStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.bgw.testing.server.config.ServerException;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import javax.annotation.PostConstruct;
+import java.util.*;
+
 
 @Service
 public class GroupService {
@@ -22,36 +26,50 @@ public class GroupService {
     @Autowired
     private TsCaseInfoMapper tsCaseInfoMapper;
 
-    /**
-     * 根据父Id获取子组信息
-     * @param parentId
-     * @return
-     */
-    public List<GroupInfoDto> getGroupInfoByParentId(String parentId) {
-        List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectByParentId(parentId);
+    @PostConstruct
+    public void initGroup() {
+        List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectAll();
         List<GroupInfoDto> groupInfoDtos = new ArrayList<>();
         if (tsGroupInfos != null && tsGroupInfos.size() > 0) {
             tsGroupInfos.forEach(tsGroupInfo -> {
-                groupInfoDtos.add(groupInfoDbConvertDto(tsGroupInfo));
+                groupInfoDtos.add(convertToGroupInfoDto(tsGroupInfo));
             });
+            GroupContext.getInstance().initGroup(groupInfoDtos);
         }
-        return groupInfoDtos;
     }
 
     /**
-     * 根据组名称模糊查询组信息
-     * @param groupName
+     * 从缓存查询子组
+     * @param groupId
      * @return
      */
-    public List<GroupInfoDto> getGroupInfoByGroupName(String groupName) {
-        List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectLikeByGroupName(groupName);
-        List<GroupInfoDto> groupInfoDtos = new ArrayList<>();
-        if (tsGroupInfos != null && tsGroupInfos.size() > 0) {
-            tsGroupInfos.forEach(tsGroupInfo -> {
-                groupInfoDtos.add(groupInfoDbConvertDto(tsGroupInfo));
-            });
+    public List<GroupInfoDto> getChildGroupInfo(String groupId){
+        return GroupContext.getInstance().getCurrentChildGroupInfo(groupId);
+    }
+
+    /**
+     * 是否存在组
+     * @param groupId
+     * @return
+     */
+    public boolean isExistGroup(String groupId) {
+        TsGroupInfo tsGroupInfo = tsGroupInfoMapper.selectByPrimaryKey(groupId);
+        if (tsGroupInfo != null) {
+            return true;
         }
-        return groupInfoDtos;
+        return false;
+    }
+
+    /**
+     * 是否终节点
+     * @param groupId
+     * @return
+     */
+    private boolean isFinallyGroup(String groupId) {
+        if (tsGroupInfoMapper.selectByParentId(groupId).size() == 0) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -59,12 +77,23 @@ public class GroupService {
      * @param groupInfoDto
      */
     public void addGroupInfo(GroupInfoDto groupInfoDto) {
-        List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectByGroupName(groupInfoDto.getGroupName(),groupInfoDto.getParentId());
-        if(tsGroupInfos.size()==0){
-            groupInfoDto.setGroupId(BaseStringUtils.uuidSimple());
-            groupInfoDto.setCreateTime(new Date());
-            groupInfoDto.setCreateBy("System");
-            tsGroupInfoMapper.insertSelective(groupInfoDtoConvertDb(groupInfoDto));
+        if(StringUtils.isBlank(groupInfoDto.getParentId())) {
+            throw new ServerException(ErrorCode.NOT_NULL, "parentId");
+        } else if (isExistGroup(groupInfoDto.getParentId())){
+            if (tsGroupInfoMapper.selectByGroupName(groupInfoDto.getGroupName(), groupInfoDto.getParentId()) == null) {
+                TsGroupInfo tsGroupInfo = convertToTsGroupInfo(groupInfoDto);
+                tsGroupInfo.setId(BaseStringUtils.uuidSimple());
+                tsGroupInfo.setCreateTime(new Date());
+                tsGroupInfo.setCreateBy("System");
+                tsGroupInfo.setUpdateTime(new Date());
+                tsGroupInfo.setUpdateBy("System");
+                tsGroupInfoMapper.insertSelective(tsGroupInfo);
+                GroupContext.getInstance().addGroupInfo(convertToGroupInfoDto(tsGroupInfo));
+            } else {
+                throw new ServerException(ErrorCode.ALREADY_EXISTS, groupInfoDto.getGroupName());
+            }
+        } else{
+            throw new ServerException(ErrorCode.NOT_EXIST,groupInfoDto.getParentId());
         }
     }
 
@@ -73,64 +102,76 @@ public class GroupService {
      * @param groupInfoDto
      */
     public void updateGroupInfo(GroupInfoDto groupInfoDto) {
-        groupInfoDto.setUpdateTime(new Date());
-        groupInfoDto.setUpdateBy("System");
-        tsGroupInfoMapper.updateByPrimaryKeySelective(groupInfoDtoConvertDb(groupInfoDto));
+        TsGroupInfo oldTsGroupInfo = tsGroupInfoMapper.selectByPrimaryKey(groupInfoDto.getGroupId());
+
+        TsGroupInfo tsGroupInfo = convertToTsGroupInfo(groupInfoDto);
+        tsGroupInfo.setUpdateTime(new Date());
+        tsGroupInfo.setUpdateBy("System");
+        tsGroupInfoMapper.updateByPrimaryKeySelective(tsGroupInfo);
+
+        GroupInfoDto oldGroupInfoDto = convertToGroupInfoDto(tsGroupInfoMapper.selectByPrimaryKey(oldTsGroupInfo.getParentId()));
+        GroupContext.getInstance().updateGroupInfo(convertToGroupInfoDto(tsGroupInfo),oldGroupInfoDto);
+    }
+    /**
+     * 删除组（有用例不能删）
+     * @param groupId
+     */
+    public String deleteGroupInfo(String groupId) {
+        TsGroupInfo oldTsGroupInfo = tsGroupInfoMapper.selectByPrimaryKey(groupId);
+
+        String result = deleteGroup(groupId);
+
+        GroupInfoDto oldGroupInfoDto = convertToGroupInfoDto(tsGroupInfoMapper.selectByPrimaryKey(oldTsGroupInfo.getParentId()));
+        GroupContext.getInstance().deleteGroupInfo(groupId,oldGroupInfoDto);
+        return result;
     }
 
     /**
      * 删除组（有用例不能删）
      * @param groupId
      */
-    public String deleteGroupInfo(String groupId) {
+    @Transactional
+    public String deleteGroup(String groupId) {
         String result = "";
         List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectByParentId(groupId);
         Integer childGroupNum = tsGroupInfos.size();
         if (childGroupNum == 0){
-            List<TsCaseInfo> tsCaseInfos = tsCaseInfoMapper.selectByGroupId(groupId);
+            Map params = new HashMap();
+            params.put("groupId", groupId);
+            List<TsCaseInfo> tsCaseInfos = tsCaseInfoMapper.selectByParams(params);
             if(tsCaseInfos.size()==0){
                 tsGroupInfoMapper.deleteByPrimaryKey(groupId);
             }
             else{
-                result = "请删除组内用例再删除组";
+                throw new ServerException(ErrorCode.ALREADY_EXISTS,"组里的用例");
             }
         }else if(childGroupNum > 0){
             int loop = 0;
             while((loop < childGroupNum)&&(StringUtils.isBlank(result))){
-                result = deleteGroupInfo(tsGroupInfos.get(loop).getId());
+                result = deleteGroup(tsGroupInfos.get(loop).getId());
                 loop ++;
             }
-            if(StringUtils.isBlank(result))
-            {
-                result = deleteGroupInfo(groupId);
-            }
+            result = deleteGroup(groupId);
         }
         return result;
     }
 
-    private GroupInfoDto groupInfoDbConvertDto(TsGroupInfo tsGroupInfo) {
+    private GroupInfoDto convertToGroupInfoDto(TsGroupInfo tsGroupInfo) {
         GroupInfoDto groupInfoDto = new GroupInfoDto();
         groupInfoDto.setGroupId(tsGroupInfo.getId());
-        groupInfoDto.setGroupName(tsGroupInfo.getGroupName());
+        groupInfoDto.setGroupName(tsGroupInfo.getGroupName().trim());
         groupInfoDto.setParentId(tsGroupInfo.getParentId());
         groupInfoDto.setPriority(tsGroupInfo.getPriority());
-        groupInfoDto.setCreateTime(tsGroupInfo.getCreateTime());
-        groupInfoDto.setCreateBy(tsGroupInfo.getCreateBy());
-        groupInfoDto.setUpdateTime(tsGroupInfo.getUpdateTime());
-        groupInfoDto.setUpdateBy(tsGroupInfo.getUpdateBy());
+        groupInfoDto.setIsFinally(isFinallyGroup(tsGroupInfo.getId()));
         return groupInfoDto;
     }
 
-    private TsGroupInfo groupInfoDtoConvertDb(GroupInfoDto groupInfoDto){
+    private TsGroupInfo convertToTsGroupInfo(GroupInfoDto groupInfoDto){
         TsGroupInfo tsGroupInfo = new TsGroupInfo();
         tsGroupInfo.setId(groupInfoDto.getGroupId());
         tsGroupInfo.setGroupName(groupInfoDto.getGroupName());
         tsGroupInfo.setParentId(groupInfoDto.getParentId());
         tsGroupInfo.setPriority(groupInfoDto.getPriority());
-        tsGroupInfo.setCreateTime(groupInfoDto.getCreateTime());
-        tsGroupInfo.setCreateBy(groupInfoDto.getCreateBy());
-        tsGroupInfo.setUpdateTime(groupInfoDto.getUpdateTime());
-        tsGroupInfo.setUpdateBy(groupInfoDto.getUpdateBy());
         return tsGroupInfo;
     }
 }

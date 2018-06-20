@@ -1,5 +1,7 @@
 package com.bgw.testing.server.util;
 
+import com.bgw.testing.common.enums.ErrorCode;
+import com.bgw.testing.server.config.ServerException;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -12,6 +14,7 @@ import com.google.gson.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -135,6 +138,19 @@ public class BaseJsonUtils {
         return uglyJSONString;
     }
 
+    public static Object valueFromJsonKey(String json, String key) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(json), "json内容不能为空");
+        Preconditions.checkArgument(StringUtils.isNotBlank(key), "key不能为空");
+        if (!json.startsWith("{") || !json.endsWith("}")) {
+            json = StringUtils.substringBeforeLast(json, "}");
+            json = StringUtils.substringAfter(json, "{");
+            json = "{" + json + "}";
+        }
+
+        Map<String, Object> map = (Map)readValue(json, Map.class);
+        return map.get(key);
+    }
+
     /**
      * 是否为JSON校验
      * @param json
@@ -157,7 +173,7 @@ public class BaseJsonUtils {
      * @param strJson, @param strkey
      * @return Object
      */
-    public Object getValueByKey(Object strJson, String strKey) throws Exception {
+    public static Object getValueByKey(Object strJson, String strKey) {
         Object rvalue=parseJson(strJson, strKey);
         if(rvalue==""){
             rvalue = "key不存在";
@@ -165,8 +181,13 @@ public class BaseJsonUtils {
         return rvalue;
     }
 
-    private Object parseJson(Object strJson, String strKey)throws Exception{
-        JsonNode jsonNode =  mapper.readTree(strJson.toString());
+    private static Object parseJson(Object strJson, String strKey){
+        JsonNode jsonNode;
+        try {
+            jsonNode =  mapper.readTree(strJson.toString());
+        } catch (Exception e) {
+           throw new ServerException(ErrorCode.INVALID_CONDITION,strJson);
+        }
         Iterator<String> keys = jsonNode.fieldNames();
         Object keyValue = "";
         while(keys.hasNext()) {

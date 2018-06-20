@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
-import org.springframework.web.client.ResponseExtractor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +21,12 @@ public class ExtractorDto {
     private String keyInEnvironmentVariable;
     private String keyInCaseVariable;
     private String contextValue;
-    private List<ResponseExtractor> extractors = new ArrayList<>();
+    private List<ExtractorDto> extractors = new ArrayList<>();
+
+    public void check() {
+        if (element != null && regex != null) {
+            throw new RuntimeException("extractor中element和regex不能同时存在");
+        }
+    }
 
 }

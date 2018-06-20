@@ -3,6 +3,7 @@
 <mapper namespace="com.bgw.testing.dao.mapper.bgw_automation.TsInterfaceBasicInfoMapper">
   <resultMap id="BaseResultMap" type="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="group_id" jdbcType="VARCHAR" property="groupId" />
     <result column="description" jdbcType="VARCHAR" property="description" />
     <result column="path" jdbcType="VARCHAR" property="path" />
     <result column="method" jdbcType="VARCHAR" property="method" />
@@ -15,7 +16,7 @@
     <result column="body" jdbcType="LONGVARCHAR" property="body" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, description, path, method, create_time, create_by, update_time, update_by
+    id,group_id, description, path, method, create_time, create_by, update_time, update_by
   </sql>
   <sql id="Blob_Column_List">
     body
@@ -36,16 +37,23 @@
     from ts_interface_basic_info
     where description like concat(concat('%', #{description,jdbcType=VARCHAR}),'%')
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    <select id="selectAll" resultMap="ResultMapWithBLOBs">
+      select
+      <include refid="Base_Column_List" />
+      ,
+      <include refid="Blob_Column_List" />
+      from ts_interface_basic_info
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_interface_basic_info
     where id = #{id,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
-    insert into ts_interface_basic_info (id, description, path, 
+    insert into ts_interface_basic_info (id, group_id,description, path,
       method, create_time, create_by, 
       update_time, update_by, body
       )
-    values (#{id,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, 
+    values (#{id,jdbcType=VARCHAR},#{groupId,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR},
       #{method,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, 
       #{updateTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR}, #{body,jdbcType=LONGVARCHAR}
       )
@@ -55,6 +63,9 @@
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
         id,
+      </if>
+      <if test="groupId != null">
+        group_id,
       </if>
       <if test="description != null">
         description,
@@ -85,6 +96,9 @@
       <if test="id != null">
         #{id,jdbcType=VARCHAR},
       </if>
+      <if test="groupId != null">
+        #{groupId,jdbcType=VARCHAR},
+      </if>
       <if test="description != null">
         #{description,jdbcType=VARCHAR},
       </if>
@@ -114,6 +128,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     update ts_interface_basic_info
     <set>
+      <if test="groupId != null">
+        group_id = #{groupId,jdbcType=VARCHAR},
+      </if>
       <if test="description != null">
         description = #{description,jdbcType=VARCHAR},
       </if>
@@ -143,7 +160,8 @@
   </update>
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     update ts_interface_basic_info
-    set description = #{description,jdbcType=VARCHAR},
+    set group_id = #{groupId，jdbcType=VARCHAR} ,
+    description = #{description,jdbcType=VARCHAR},
       path = #{path,jdbcType=VARCHAR},
       method = #{method,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -155,7 +173,8 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     update ts_interface_basic_info
-    set description = #{description,jdbcType=VARCHAR},
+    set group_id = #{groupId，jdbcType=VARCHAR} ,
+    description = #{description,jdbcType=VARCHAR},
       path = #{path,jdbcType=VARCHAR},
       method = #{method,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},

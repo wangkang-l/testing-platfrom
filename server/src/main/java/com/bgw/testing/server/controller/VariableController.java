@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin
 @RestController
 @Api(description = "变量管理")
-@RequestMapping(value = AppConst.BASE_PATH + "variable")
+@RequestMapping(value = AppConst.BASE_PATH)
 public class VariableController {
 
     @Autowired
     private VariableService variableService;
 
     @ApiOperation(value = "查询变量列表")
-    @RequestMapping(value = "/info", method = RequestMethod.GET)
+    @RequestMapping(value = "/variable", method = RequestMethod.GET)
     public PageInfo<VariableInfoDto> getVariableList(
             @RequestParam String type,
             @RequestParam(value = "environment_id", required = false) String environmentId,
@@ -30,23 +30,30 @@ public class VariableController {
     }
 
     @ApiOperation(value = "新增变量")
-    @RequestMapping(value = "/info", method = RequestMethod.POST)
+    @RequestMapping(value = "/variable", method = RequestMethod.POST)
     public Boolean addVariable(@RequestBody VariableInfoDto variableInfoDto) {
         variableService.addVariable(variableInfoDto);
         return true;
     }
 
     @ApiOperation(value = "更新变量")
-    @RequestMapping(value = "/info", method = RequestMethod.PUT)
+    @RequestMapping(value = "/variable", method = RequestMethod.PUT)
     public Boolean updateVariable(@RequestBody VariableInfoDto variableInfoDto) {
         variableService.updateVariable(variableInfoDto);
         return true;
     }
 
     @ApiOperation(value = "删除变量")
-    @RequestMapping(value = "/info/{variable_id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/variable/{variable_id}", method = RequestMethod.DELETE)
     public Boolean delVariable(@PathVariable(value = "variable_id") String variableId ){
         variableService.delVariable(variableId);
+        return true;
+    }
+
+    @ApiOperation(value = "初始化环境变量")
+    @RequestMapping(value = "/{environment_id}/variable", method = RequestMethod.GET)
+    public Boolean initEnvironmentVariable(@PathVariable(value = "environment_id") String environmentId ){
+        variableService.initEnvironmentVariable(environmentId);
         return true;
     }
 

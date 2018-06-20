@@ -1,11 +1,12 @@
 package com.bgw.testing.dao.mapper.bgw_automation;
 
 import com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TsCaseInfoMapper {
-
     int deleteByPrimaryKey(String id);
 
     int insert(TsCaseInfo record);
@@ -18,8 +19,9 @@ public interface TsCaseInfoMapper {
 
     int updateByPrimaryKey(TsCaseInfo record);
 
-    List<TsCaseInfo> selectByGroupId(String groupId);
-
     List<TsCaseInfo> selectAll();
 
+    List<TsCaseInfo> selectByParams(Map params);
+
+    int updateGroupId(@Param(value = "caseIds") List<String> caseIds, @Param(value = "groupId") String groupId);
 }

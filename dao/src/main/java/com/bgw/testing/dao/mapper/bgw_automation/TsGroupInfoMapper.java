@@ -20,8 +20,11 @@ public interface TsGroupInfoMapper {
 
     List<TsGroupInfo> selectByParentId(String parentId);
 
-    List<TsGroupInfo> selectByGroupName(@Param(value = "groupName") String groupName, @Param(value = "parentId") String parentId);
+    TsGroupInfo selectByGroupName(@Param(value = "groupName") String groupName, @Param(value = "parentId") String parentId);
 
     List<TsGroupInfo> selectLikeByGroupName(String groupName);
+
+    List<TsGroupInfo> selectAll();
+
 
 }

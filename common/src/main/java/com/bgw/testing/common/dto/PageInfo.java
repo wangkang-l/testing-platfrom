@@ -29,5 +29,9 @@ public class PageInfo<T> {
         this.total = list.size();
         this.data = list.subList(fromIndex >= total ? total : fromIndex, toIndex >= total ? total : toIndex);
     }
-
+    public PageInfo(@NotNull List<T> list) {
+        int fromIndex = 0;
+        this.total = list.size();
+        this.data = list.subList(fromIndex,total);
+    }
 }

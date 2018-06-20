@@ -19,6 +19,17 @@
     from ts_environment_list
     where id = #{id,jdbcType=VARCHAR}
   </select>
+  <select id="selectByEnvironmentName" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ts_environment_list
+    where name = #{name}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ts_environment_list
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_environment_list
     where id = #{id,jdbcType=VARCHAR}

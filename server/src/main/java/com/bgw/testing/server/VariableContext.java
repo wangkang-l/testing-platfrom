@@ -46,9 +46,21 @@ public class VariableContext {
         return temporaryVariable;
     }
 
+    public void initTemporaryVariable(String key, Map<String, String> map) {
+        if (map != null && map.size() > 0) {
+            temporaryVariable.putIfAbsent(key, map);
+        }
+    }
+
+    public Map<String, String> getTemporaryVariable(String key) {
+        temporaryVariable.putIfAbsent(key, new ConcurrentHashMap<>());
+        return temporaryVariable.get(key);
+    }
+
     public void initVariable(List<TsVariableList> tsVariableLists) {
         if (tsVariableLists != null && tsVariableLists.size() > 0) {
             variableLists.addAll(tsVariableLists);
+            environmentVariable.clear();
             tsVariableLists.parallelStream().forEach(tsVariableList -> {
                 if (tsVariableList.getType().equals(VariableType.GLOBAL.type)) {
                     globalVariable.put(tsVariableList.getConfigKey(), tsVariableList.getConfigValue());

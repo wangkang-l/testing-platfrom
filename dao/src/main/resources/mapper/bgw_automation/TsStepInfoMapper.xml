@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bgw.testing.dao.mapper.bgw_automation.TsStepInfoMapper">
+  <resultMap id="BaseResultMap" type="com.bgw.testing.dao.pojo.bgw_automation.TsStepInfo">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="case_id" jdbcType="VARCHAR" property="caseId" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="precondition" jdbcType="VARCHAR" property="precondition" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="priority" jdbcType="INTEGER" property="priority" />
+    <result column="func" jdbcType="VARCHAR" property="func" />
+    <result column="template_id" jdbcType="VARCHAR" property="templateId" />
+    <result column="http_request" jdbcType="VARCHAR" property="httpRequest" />
+    <result column="redis_request" jdbcType="VARCHAR" property="redisRequest" />
+    <result column="mysql_request" jdbcType="VARCHAR" property="mysqlRequest" />
+    <result column="init_temporary_variables" jdbcType="VARCHAR" property="initTemporaryVariables" />
+    <result column="key_in_global_variable" jdbcType="VARCHAR" property="keyInGlobalVariable" />
+    <result column="key_in_environment_variable" jdbcType="VARCHAR" property="keyInEnvironmentVariable" />
+    <result column="key_in_temporary_variable" jdbcType="VARCHAR" property="keyInTemporaryVariable" />
+    <result column="element" jdbcType="VARCHAR" property="element" />
+    <result column="extractor" jdbcType="VARCHAR" property="extractor" />
+    <result column="verifier" jdbcType="VARCHAR" property="verifier" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="create_by" jdbcType="VARCHAR" property="createBy" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, case_id, description, precondition, type, priority, func, template_id, http_request, 
+    redis_request, mysql_request, init_temporary_variables, key_in_global_variable, key_in_environment_variable, 
+    key_in_temporary_variable, element, extractor, verifier, create_time, create_by, 
+    update_time, update_by
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from ts_step_info
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="selectByCaseId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ts_step_info
+    where case_id = #{caseId}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from ts_step_info
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByCaseId">
+    delete from ts_step_info
+    where case_id = #{caseId}
+  </delete>
+  <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsStepInfo">
+    insert into ts_step_info (id, case_id, description, 
+      precondition, type, priority, 
+      func, template_id, http_request, 
+      redis_request, mysql_request, init_temporary_variables, 
+      key_in_global_variable, key_in_environment_variable, 
+      key_in_temporary_variable, element, extractor, 
+      verifier, create_time, create_by, 
+      update_time, update_by)
+    values (#{id,jdbcType=VARCHAR}, #{caseId,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
+      #{precondition,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, 
+      #{func,jdbcType=VARCHAR}, #{templateId,jdbcType=VARCHAR}, #{httpRequest,jdbcType=VARCHAR}, 
+      #{redisRequest,jdbcType=VARCHAR}, #{mysqlRequest,jdbcType=VARCHAR}, #{initTemporaryVariables,jdbcType=VARCHAR}, 
+      #{keyInGlobalVariable,jdbcType=VARCHAR}, #{keyInEnvironmentVariable,jdbcType=VARCHAR}, 
+      #{keyInTemporaryVariable,jdbcType=VARCHAR}, #{element,jdbcType=VARCHAR}, #{extractor,jdbcType=VARCHAR}, 
+      #{verifier,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsStepInfo">
+    insert into ts_step_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="caseId != null">
+        case_id,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="precondition != null">
+        precondition,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="priority != null">
+        priority,
+      </if>
+      <if test="func != null">
+        func,
+      </if>
+      <if test="templateId != null">
+        template_id,
+      </if>
+      <if test="httpRequest != null">
+        http_request,
+      </if>
+      <if test="redisRequest != null">
+        redis_request,
+      </if>
+      <if test="mysqlRequest != null">
+        mysql_request,
+      </if>
+      <if test="initTemporaryVariables != null">
+        init_temporary_variables,
+      </if>
+      <if test="keyInGlobalVariable != null">
+        key_in_global_variable,
+      </if>
+      <if test="keyInEnvironmentVariable != null">
+        key_in_environment_variable,
+      </if>
+      <if test="keyInTemporaryVariable != null">
+        key_in_temporary_variable,
+      </if>
+      <if test="element != null">
+        element,
+      </if>
+      <if test="extractor != null">
+        extractor,
+      </if>
+      <if test="verifier != null">
+        verifier,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="createBy != null">
+        create_by,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateBy != null">
+        update_by,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="caseId != null">
+        #{caseId,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="precondition != null">
+        #{precondition,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null">
+        #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="func != null">
+        #{func,jdbcType=VARCHAR},
+      </if>
+      <if test="templateId != null">
+        #{templateId,jdbcType=VARCHAR},
+      </if>
+      <if test="httpRequest != null">
+        #{httpRequest,jdbcType=VARCHAR},
+      </if>
+      <if test="redisRequest != null">
+        #{redisRequest,jdbcType=VARCHAR},
+      </if>
+      <if test="mysqlRequest != null">
+        #{mysqlRequest,jdbcType=VARCHAR},
+      </if>
+      <if test="initTemporaryVariables != null">
+        #{initTemporaryVariables,jdbcType=VARCHAR},
+      </if>
+      <if test="keyInGlobalVariable != null">
+        #{keyInGlobalVariable,jdbcType=VARCHAR},
+      </if>
+      <if test="keyInEnvironmentVariable != null">
+        #{keyInEnvironmentVariable,jdbcType=VARCHAR},
+      </if>
+      <if test="keyInTemporaryVariable != null">
+        #{keyInTemporaryVariable,jdbcType=VARCHAR},
+      </if>
+      <if test="element != null">
+        #{element,jdbcType=VARCHAR},
+      </if>
+      <if test="extractor != null">
+        #{extractor,jdbcType=VARCHAR},
+      </if>
+      <if test="verifier != null">
+        #{verifier,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createBy != null">
+        #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null">
+        #{updateBy,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsStepInfo">
+    update ts_step_info
+    <set>
+      <if test="caseId != null">
+        case_id = #{caseId,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="precondition != null">
+        precondition = #{precondition,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null">
+        priority = #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="func != null">
+        func = #{func,jdbcType=VARCHAR},
+      </if>
+      <if test="templateId != null">
+        template_id = #{templateId,jdbcType=VARCHAR},
+      </if>
+      <if test="httpRequest != null">
+        http_request = #{httpRequest,jdbcType=VARCHAR},
+      </if>
+      <if test="redisRequest != null">
+        redis_request = #{redisRequest,jdbcType=VARCHAR},
+      </if>
+      <if test="mysqlRequest != null">
+        mysql_request = #{mysqlRequest,jdbcType=VARCHAR},
+      </if>
+      <if test="initTemporaryVariables != null">
+        init_temporary_variables = #{initTemporaryVariables,jdbcType=VARCHAR},
+      </if>
+      <if test="keyInGlobalVariable != null">
+        key_in_global_variable = #{keyInGlobalVariable,jdbcType=VARCHAR},
+      </if>
+      <if test="keyInEnvironmentVariable != null">
+        key_in_environment_variable = #{keyInEnvironmentVariable,jdbcType=VARCHAR},
+      </if>
+      <if test="keyInTemporaryVariable != null">
+        key_in_temporary_variable = #{keyInTemporaryVariable,jdbcType=VARCHAR},
+      </if>
+      <if test="element != null">
+        element = #{element,jdbcType=VARCHAR},
+      </if>
+      <if test="extractor != null">
+        extractor = #{extractor,jdbcType=VARCHAR},
+      </if>
+      <if test="verifier != null">
+        verifier = #{verifier,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createBy != null">
+        create_by = #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null">
+        update_by = #{updateBy,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsStepInfo">
+    update ts_step_info
+    set case_id = #{caseId,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
+      precondition = #{precondition,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      priority = #{priority,jdbcType=INTEGER},
+      func = #{func,jdbcType=VARCHAR},
+      template_id = #{templateId,jdbcType=VARCHAR},
+      http_request = #{httpRequest,jdbcType=VARCHAR},
+      redis_request = #{redisRequest,jdbcType=VARCHAR},
+      mysql_request = #{mysqlRequest,jdbcType=VARCHAR},
+      init_temporary_variables = #{initTemporaryVariables,jdbcType=VARCHAR},
+      key_in_global_variable = #{keyInGlobalVariable,jdbcType=VARCHAR},
+      key_in_environment_variable = #{keyInEnvironmentVariable,jdbcType=VARCHAR},
+      key_in_temporary_variable = #{keyInTemporaryVariable,jdbcType=VARCHAR},
+      element = #{element,jdbcType=VARCHAR},
+      extractor = #{extractor,jdbcType=VARCHAR},
+      verifier = #{verifier,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_by = #{createBy,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_by = #{updateBy,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

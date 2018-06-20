@@ -5,16 +5,18 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Date;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class CaseContentDto {
-
-    private String condition;
-    private Map<String, String> initCaseVariables;
-    private List<StepDto> step;
-
+public class ReportTemplateDto {
+    private String taskName;
+    private String batchNo;
+    private Date startTime;
+    private Date endTime;
+    private Integer caseNum;
+    private Integer passNum;
+    private Integer failNum;
+    private String passRate;
 }

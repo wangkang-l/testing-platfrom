@@ -4,6 +4,8 @@ import com.alibaba.druid.pool.DruidDataSourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +23,7 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
-@ConditionalOnProperty({"integrationTest.mysql.url"})
+@ConditionalOnProperty({"bgw20180418test1.mysql.url", "bgw_automation.mysql.url"})
 @ComponentScan(basePackages = {"com.bgw.testing.dao"})
 public class JdbcTemplateConfig {
 
@@ -33,8 +35,10 @@ public class JdbcTemplateConfig {
     private String pass;
     @Value("${mysql.max.active:10}")
     private String maxActive;
-    @Value("${integrationTest.mysql.url}")
-    private String integrationTestUrl;
+    @Value("${bgw20180418test1.mysql.url}")
+    private String bgw20180418test1TestUrl;
+    @Value("${bgw_automation.mysql.url}")
+    private String bgwAutomationTestUrl;
 
     @PostConstruct
     public void init() {
@@ -57,31 +61,57 @@ public class JdbcTemplateConfig {
         initMap.put("maxActive", maxActive + "");
     }
 
-    @Primary
-    @Bean(name = "dsIntegrationTest")
-    public DataSource dsIntegrationTest() {
-        log.info("初始化integrationTest数据源");
+    @Bean(name = "dsBgw20180418test1")
+    public DataSource dsBgw20180418test1() {
+        log.info("初始化bgw20180418test1数据源");
         try {
-            return DruidDataSourceFactory.createDataSource(dbProps(integrationTestUrl));
+            return DruidDataSourceFactory.createDataSource(dbProps(bgw20180418test1TestUrl));
         } catch (Exception e) {
-            log.error("无法获得数据源[{}]:{}", integrationTestUrl, ExceptionUtils.getStackTrace(e));
+            log.error("无法获得数据源[{}]:{}", bgw20180418test1TestUrl, ExceptionUtils.getStackTrace(e));
             throw new RuntimeException("无法获得数据源");
         }
     }
 
-    @Bean(name = "templateIntegrationTest")
-    public JdbcTemplate templateIntegrationTest() {
-        return new JdbcTemplate(this.dsIntegrationTest());
+    @Bean(name = "templateBgw20180418test1")
+    public JdbcTemplate templateBgw20180418test1() {
+        return new JdbcTemplate(this.dsBgw20180418test1());
     }
 
-    @Bean(name = "namedTemplateIntegrationTest")
-    public NamedParameterJdbcTemplate namedTemplateIntegrationTest() {
-        return new NamedParameterJdbcTemplate(this.dsIntegrationTest());
+    @Bean(name = "namedTemplateBgw20180418test1")
+    public NamedParameterJdbcTemplate namedTemplateBgw20180418test1() {
+        return new NamedParameterJdbcTemplate(this.dsBgw20180418test1());
     }
 
-    @Bean(name = "tmIntegrationTest")
-    public DataSourceTransactionManager tsIntegrationTest() {
-        return new DataSourceTransactionManager(this.dsIntegrationTest());
+    @Bean(name = "tmBgw20180418test1")
+    public DataSourceTransactionManager tsBgw20180418test1() {
+        return new DataSourceTransactionManager(this.dsBgw20180418test1());
+    }
+
+    @Primary
+    @Bean(name = "dsBgwAutomation")
+    public DataSource dsBgwAutomation() {
+        log.info("初始化BgwAutomation数据源");
+        try {
+            return DruidDataSourceFactory.createDataSource(dbProps(bgwAutomationTestUrl));
+        } catch (Exception e) {
+            log.error("无法获得数据源[{}]:{}", bgwAutomationTestUrl, ExceptionUtils.getStackTrace(e));
+            throw new RuntimeException("无法获得数据源");
+        }
+    }
+
+    @Bean(name = "templateBgwAutomation")
+    public JdbcTemplate templateBgwAutomation() {
+        return new JdbcTemplate(this.dsBgwAutomation());
+    }
+
+    @Bean(name = "namedTemplateBgwAutomation")
+    public NamedParameterJdbcTemplate namedTemplateBgwAutomation() {
+        return new NamedParameterJdbcTemplate(this.dsBgwAutomation());
+    }
+
+    @Bean(name = "tmBgwAutomation")
+    public DataSourceTransactionManager tsBgwAutomation() {
+        return new DataSourceTransactionManager(this.dsBgwAutomation());
     }
 
     private Map<String, Object> dbProps(String url) {

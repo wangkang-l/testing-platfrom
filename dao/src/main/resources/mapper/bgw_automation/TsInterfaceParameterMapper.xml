@@ -26,7 +26,7 @@
     select
     <include refid="Base_Column_List" />
     from ts_interface_parameter
-    where interface_id = #{interfaceId,jdbcType=VARCHAR}
+    where interface_id = #{interfaceId,jdbcType=VARCHAR} and parameter_type = #{parameterType,jdbcType=VARCHAR}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_interface_parameter

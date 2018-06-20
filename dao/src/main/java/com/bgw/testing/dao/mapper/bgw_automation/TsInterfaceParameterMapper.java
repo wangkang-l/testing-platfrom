@@ -1,6 +1,8 @@
 package com.bgw.testing.dao.mapper.bgw_automation;
 
 import com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceParameter;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 public interface TsInterfaceParameterMapper {
@@ -18,5 +20,6 @@ public interface TsInterfaceParameterMapper {
 
     int deleteByInterfaceId(String interfaceId);
 
-    List<TsInterfaceParameter> selectByInterfaceId(String interfaceId);
+    List<TsInterfaceParameter> selectByInterfaceId(@Param(value="interfaceId") String interfaceId,
+                                                   @Param(value="parameterType") String parameterType);
 }

@@ -8,46 +8,41 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @CrossOrigin
 @RestController
 @Api(description = "组管理")
-@RequestMapping(value = AppConst.BASE_PATH + "group")
+@RequestMapping(value = AppConst.BASE_PATH)
 public class GroupController {
 
     @Autowired
     private GroupService groupService;
 
-    @ApiOperation(value = "根据父ID获取子组信息")
-    @RequestMapping(value = "/{parentId}", method = RequestMethod.GET)
-    public List<GroupInfoDto> getGroupInfoByParentId(@PathVariable String parentId) {
-        return groupService.getGroupInfoByParentId(parentId);
-    }
-
-    @ApiOperation(value = "根据组名称模糊查询组信息")
-    @RequestMapping(value = "/info", method = RequestMethod.GET)
-    public List<GroupInfoDto> getGroupInfoByGroupName(@RequestParam String groupName) {
-        return groupService.getGroupInfoByGroupName(groupName);
+    @ApiOperation(value = "从缓存查询子组")
+    @RequestMapping(value = "/group/{group_id}", method = RequestMethod.GET)
+    public List<GroupInfoDto> getChildGroupInfo(@PathVariable(value = "group_id") String groupId) {
+        return groupService.getChildGroupInfo(groupId);
     }
 
     @ApiOperation(value = "新增组")
-    @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public boolean addGroupInfo(@RequestBody GroupInfoDto groupInfoDto) {
+    @RequestMapping(value = "/group", method = RequestMethod.POST)
+    public boolean addGroupInfo(@RequestBody @Valid GroupInfoDto groupInfoDto) {
         groupService.addGroupInfo(groupInfoDto);
         return true;
     }
 
     @ApiOperation(value = "更新组，移动组")
-    @RequestMapping(value = "/update", method = RequestMethod.PUT)
-    public boolean updateGroupInfo(@RequestBody GroupInfoDto groupInfoDto) {
+    @RequestMapping(value = "/group", method = RequestMethod.PUT)
+    public boolean updateGroupInfo(@RequestBody @Valid GroupInfoDto groupInfoDto) {
         groupService.updateGroupInfo(groupInfoDto);
         return true;
     }
 
     @ApiOperation(value = "删除组")
-    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    public boolean deleteGroupInfo(@RequestParam(value = "groupId") String groupId) {
+    @RequestMapping(value = "/group/{group_id}", method = RequestMethod.DELETE)
+    public boolean deleteGroupInfo(@PathVariable(value = "group_id") String groupId) {
         groupService.deleteGroupInfo(groupId);
         return true;
     }

@@ -6,8 +6,10 @@
     <result column="group_id" jdbcType="VARCHAR" property="groupId" />
     <result column="case_name" jdbcType="VARCHAR" property="caseName" />
     <result column="description" jdbcType="VARCHAR" property="description" />
-    <result column="case_content" jdbcType="VARCHAR" property="caseContent" />
+    <result column="precondition" jdbcType="VARCHAR" property="precondition" />
     <result column="priority" jdbcType="INTEGER" property="priority" />
+    <result column="init_temporary_variables" jdbcType="VARCHAR" property="initTemporaryVariables" />
+    <result column="inherit" jdbcType="BIT" property="inherit" />
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="create_by" jdbcType="VARCHAR" property="createBy" />
@@ -15,8 +17,8 @@
     <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, group_id, case_name, description, case_content, priority, status, create_time, 
-    create_by, update_time, update_by
+    id, group_id, case_name, description, precondition, priority, init_temporary_variables, 
+    inherit, status, create_time, create_by, update_time, update_by
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select 
@@ -24,16 +26,23 @@
     from ts_case_info
     where id = #{id,jdbcType=VARCHAR}
   </select>
-  <select id="selectByGroupId" parameterType="java.lang.String" resultMap="BaseResultMap">
+  <select id="selectAll" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List"/>
     from ts_case_info
-    where group_id = #{groupId}
   </select>
-  <select id="selectAll" parameterType="java.lang.String" resultMap="BaseResultMap">
+  <select id="selectByParams" resultType="com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo">
     select
     <include refid="Base_Column_List"/>
     from ts_case_info
+    <where>
+        <if test="groupId != null and groupId != ''">
+            group_id = #{groupId}
+        </if>
+        <if test="caseId != null and caseId != ''">
+            and case_id = #{caseId}
+        </if>
+    </where>
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_case_info
@@ -41,13 +50,15 @@
   </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo">
     insert into ts_case_info (id, group_id, case_name, 
-      description, case_content, priority, 
-      status, create_time, create_by, 
-      update_time, update_by)
+      description, precondition, priority, 
+      init_temporary_variables, inherit, status, 
+      create_time, create_by, update_time, 
+      update_by)
     values (#{id,jdbcType=VARCHAR}, #{groupId,jdbcType=VARCHAR}, #{caseName,jdbcType=VARCHAR}, 
-      #{description,jdbcType=VARCHAR}, #{caseContent,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, 
-      #{status,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR})
+      #{description,jdbcType=VARCHAR}, #{precondition,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, 
+      #{initTemporaryVariables,jdbcType=VARCHAR}, #{inherit,jdbcType=BIT}, #{status,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{updateBy,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo">
     insert into ts_case_info
@@ -64,11 +75,17 @@
       <if test="description != null">
         description,
       </if>
-      <if test="caseContent != null">
-        case_content,
+      <if test="precondition != null">
+        precondition,
       </if>
       <if test="priority != null">
         priority,
+      </if>
+      <if test="initTemporaryVariables != null">
+        init_temporary_variables,
+      </if>
+      <if test="inherit != null">
+        inherit,
       </if>
       <if test="status != null">
         status,
@@ -99,11 +116,17 @@
       <if test="description != null">
         #{description,jdbcType=VARCHAR},
       </if>
-      <if test="caseContent != null">
-        #{caseContent,jdbcType=VARCHAR},
+      <if test="precondition != null">
+        #{precondition,jdbcType=VARCHAR},
       </if>
       <if test="priority != null">
         #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="initTemporaryVariables != null">
+        #{initTemporaryVariables,jdbcType=VARCHAR},
+      </if>
+      <if test="inherit != null">
+        #{inherit,jdbcType=BIT},
       </if>
       <if test="status != null">
         #{status,jdbcType=VARCHAR},
@@ -134,11 +157,17 @@
       <if test="description != null">
         description = #{description,jdbcType=VARCHAR},
       </if>
-      <if test="caseContent != null">
-        case_content = #{caseContent,jdbcType=VARCHAR},
+      <if test="precondition != null">
+        precondition = #{precondition,jdbcType=VARCHAR},
       </if>
       <if test="priority != null">
         priority = #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="initTemporaryVariables != null">
+        init_temporary_variables = #{initTemporaryVariables,jdbcType=VARCHAR},
+      </if>
+      <if test="inherit != null">
+        inherit = #{inherit,jdbcType=BIT},
       </if>
       <if test="status != null">
         status = #{status,jdbcType=VARCHAR},
@@ -163,13 +192,24 @@
     set group_id = #{groupId,jdbcType=VARCHAR},
       case_name = #{caseName,jdbcType=VARCHAR},
       description = #{description,jdbcType=VARCHAR},
-      case_content = #{caseContent,jdbcType=VARCHAR},
+      precondition = #{precondition,jdbcType=VARCHAR},
       priority = #{priority,jdbcType=INTEGER},
+      init_temporary_variables = #{initTemporaryVariables,jdbcType=VARCHAR},
+      inherit = #{inherit,jdbcType=BIT},
       status = #{status,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       create_by = #{createBy,jdbcType=VARCHAR},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       update_by = #{updateBy,jdbcType=VARCHAR}
     where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateGroupId">
+    update ts_case_info
+    set group_id = #{groupId}
+    where id in
+    <foreach item="item" index="index" collection="list"
+             open="(" separator="," close=")">
+      #{caseIds}
+    </foreach>
   </update>
 </mapper>

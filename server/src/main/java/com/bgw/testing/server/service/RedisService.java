@@ -10,9 +10,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class RedisService {
@@ -204,14 +202,27 @@ public class RedisService {
         }
     }
 
-    public void lPush(Integer dbIndex, String key, Object value) {
+    public void lPush(Integer dbIndex, String key, String value) {
         Preconditions.checkArgument(StringUtils.isNotBlank(key), "key不能为空");
         Preconditions.checkArgument(value != null, "value不能为null");
         Jedis jedis = null;
 
         try {
             jedis = this.jedisPool(dbIndex).getResource();
-            jedis.lpush(key, new String[]{BaseJsonUtils.writeValue(value)});
+            jedis.lpush(key, value);
+        } finally {
+            IOUtils.closeQuietly(jedis);
+        }
+    }
+
+    public void lPush(Integer dbIndex, String key, List<String> values) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(key), "key不能为空");
+        Preconditions.checkArgument(values != null, "value不能为null");
+        Jedis jedis = null;
+
+        try {
+            jedis = this.jedisPool(dbIndex).getResource();
+            jedis.lpush(key, values.toArray(new String[values.size()]));
         } finally {
             IOUtils.closeQuietly(jedis);
         }

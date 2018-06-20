@@ -19,4 +19,6 @@ public interface TsInterfaceBasicInfoMapper {
     int updateByPrimaryKey(TsInterfaceBasicInfo record);
 
     List<TsInterfaceBasicInfo> selectByDescription(String description);
+
+    List<TsInterfaceBasicInfo> selectAll();
 }

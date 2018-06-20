@@ -11,6 +11,7 @@ import com.bgw.testing.server.config.ServerException;
 import com.bgw.testing.server.util.BaseStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -26,21 +27,52 @@ public class VariableService {
     @Autowired
     private TsVariableListMapper tsVariableListMapper;
 
+    @Value("${default.environment.id}")
+    private String environmentId;
+
+    /**
+     * 变量初始化
+     */
     @PostConstruct
     public void initVariable() {
-        VariableContext.getInstance().initVariable(tsVariableListMapper.selectAll());
+        //初始化全局变量
+        Map<String, Object> params = new HashMap<>();
+        params.put("type", VariableType.GLOBAL.type);
+        VariableContext.getInstance().initVariable(tsVariableListMapper.selectVariableList(params));
+        //初始化环境变量
+        initEnvironmentVariable(this.environmentId);
     }
 
+    /**
+     * 初始化环境变量
+     * @param environmentId
+     */
+    public void initEnvironmentVariable(String environmentId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("type", VariableType.ENVIRONMENT.type);
+        params.put("environmentId", environmentId);
+        VariableContext.getInstance().initVariable(tsVariableListMapper.selectVariableList(params));
+    }
+
+    /**
+     * 分页查询环境变量
+     * @param type 变量类型
+     * @param environmentId 环境ID
+     * @param pageNum 页码
+     * @param pageSize 页面大小
+     * @param var4 模糊查询字符串
+     * @return
+     */
     public PageInfo<VariableInfoDto> getVariableList(String type, String environmentId, Integer pageNum, Integer pageSize, String var4) {
         List<TsVariableList> tsVariableLists = VariableContext.getInstance().getAllVariableList();
 
         //根据变量类型过滤
         List<VariableInfoDto> variableInfoDtos = tsVariableLists.parallelStream()
                 .filter(tsVariableList -> tsVariableList.getType().equals(type))
-                .map(VariableService::convertToVariableInfoDto)
+                .map(this::convertToVariableInfoDto)
                 .collect(Collectors.toList());
 
-        //更具环境ID过滤
+        //根据环境ID过滤
         if (type.equals(VariableType.ENVIRONMENT.type) && StringUtils.isNotBlank(environmentId)) {
             variableInfoDtos = variableInfoDtos.parallelStream()
                     .filter(variableInfoDto -> variableInfoDto.getEnvironmentId().equals(environmentId))
@@ -59,6 +91,10 @@ public class VariableService {
         return new PageInfo<>(variableInfoDtos, pageNum, pageSize);
     }
 
+    /**
+     * 增加变量
+     * @param variableInfoDto
+     */
     public void addVariable(VariableInfoDto variableInfoDto) {
         if (isExist(variableInfoDto)) {
             throw new ServerException(ErrorCode.ALREADY_EXISTS, variableInfoDto.getConfigKey());
@@ -71,6 +107,10 @@ public class VariableService {
         VariableContext.getInstance().addOrUpdateVariable(tsVariableList, false);
     }
 
+    /**
+     * 更新变量
+     * @param variableInfoDto
+     */
     public void updateVariable(VariableInfoDto variableInfoDto) {
         if (!isExist(variableInfoDto)) {
             throw new ServerException(ErrorCode.NOT_EXIST, variableInfoDto.getConfigKey());
@@ -82,6 +122,10 @@ public class VariableService {
         VariableContext.getInstance().addOrUpdateVariable(tsVariableList, true);
     }
 
+    /**
+     * 删除变量
+     * @param id
+     */
     public void delVariable(String id) {
         tsVariableListMapper.deleteByPrimaryKey(id);
         VariableContext variableContext = VariableContext.getInstance();
@@ -92,7 +136,12 @@ public class VariableService {
         }
     }
 
-    public boolean isExist(VariableInfoDto variableInfoDto) {
+    /**
+     * 变量是否存在
+     * @param variableInfoDto
+     * @return
+     */
+    private boolean isExist(VariableInfoDto variableInfoDto) {
         Map<String, Object> params = new HashMap<>();
         params.put("type", variableInfoDto.getType());
         params.put("environmentId", variableInfoDto.getEnvironmentId());
@@ -116,7 +165,7 @@ public class VariableService {
         return tsVariableList;
     }
 
-    private static VariableInfoDto convertToVariableInfoDto(TsVariableList tsVariableList) {
+    private VariableInfoDto convertToVariableInfoDto(TsVariableList tsVariableList) {
         VariableInfoDto variableInfoDto = new VariableInfoDto();
         variableInfoDto.setVariableId(tsVariableList.getId());
         variableInfoDto.setType(tsVariableList.getType());

@@ -11,9 +11,13 @@ public class TsCaseInfo {
 
     private String description;
 
-    private String caseContent;
+    private String precondition;
 
     private Integer priority;
+
+    private String initTemporaryVariables;
+
+    private Boolean inherit;
 
     private String status;
 
@@ -57,12 +61,12 @@ public class TsCaseInfo {
         this.description = description == null ? null : description.trim();
     }
 
-    public String getCaseContent() {
-        return caseContent;
+    public String getPrecondition() {
+        return precondition;
     }
 
-    public void setCaseContent(String caseContent) {
-        this.caseContent = caseContent == null ? null : caseContent.trim();
+    public void setPrecondition(String precondition) {
+        this.precondition = precondition == null ? null : precondition.trim();
     }
 
     public Integer getPriority() {
@@ -71,6 +75,22 @@ public class TsCaseInfo {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public String getInitTemporaryVariables() {
+        return initTemporaryVariables;
+    }
+
+    public void setInitTemporaryVariables(String initTemporaryVariables) {
+        this.initTemporaryVariables = initTemporaryVariables == null ? null : initTemporaryVariables.trim();
+    }
+
+    public Boolean getInherit() {
+        return inherit;
+    }
+
+    public void setInherit(Boolean inherit) {
+        this.inherit = inherit;
     }
 
     public String getStatus() {
