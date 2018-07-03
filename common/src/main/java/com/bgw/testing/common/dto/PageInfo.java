@@ -16,7 +16,6 @@ public class PageInfo<T> {
     public PageInfo() {}
 
     public PageInfo(@NotNull List<T> list, int pageNum, int pageSize) {
-
         if (pageNum <= 0) {
             pageNum = 1;
         }
@@ -29,6 +28,7 @@ public class PageInfo<T> {
         this.total = list.size();
         this.data = list.subList(fromIndex >= total ? total : fromIndex, toIndex >= total ? total : toIndex);
     }
+
     public PageInfo(@NotNull List<T> list) {
         int fromIndex = 0;
         this.total = list.size();

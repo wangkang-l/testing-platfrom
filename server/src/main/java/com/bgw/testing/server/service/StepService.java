@@ -5,6 +5,7 @@ import com.bgw.testing.dao.mapper.bgw_automation.TsStepInfoMapper;
 import com.bgw.testing.dao.pojo.bgw_automation.TsStepInfo;
 import com.bgw.testing.server.util.BaseJsonUtils;
 import com.bgw.testing.server.util.BaseStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +69,9 @@ public class StepService {
         stepDto.setKeyInTemporaryVariable(tsStepInfo.getKeyInTemporaryVariable());
         stepDto.setElement(tsStepInfo.getElement());
         stepDto.setExtractor(BaseJsonUtils.readValue(tsStepInfo.getExtractor(), ExtractorDto.class));
-        stepDto.setVerifiers(BaseJsonUtils.readValues(tsStepInfo.getVerifier(), VerifierDto.class));
+        if (StringUtils.isNotBlank(tsStepInfo.getVerifier())) {
+            stepDto.setVerifiers(BaseJsonUtils.readValues(tsStepInfo.getVerifier(), VerifierDto.class));
+        }
         return stepDto;
     }
 

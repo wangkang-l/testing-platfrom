@@ -2,20 +2,19 @@ package com.bgw.testing.server.service;
 
 import com.bgw.testing.common.dto.GroupInfoDto;
 import com.bgw.testing.common.enums.ErrorCode;
-import com.bgw.testing.dao.mapper.bgw_automation.TsCaseInfoMapper;
 import com.bgw.testing.dao.mapper.bgw_automation.TsGroupInfoMapper;
-import com.bgw.testing.dao.pojo.bgw_automation.TsCaseInfo;
 import com.bgw.testing.dao.pojo.bgw_automation.TsGroupInfo;
 import com.bgw.testing.server.GroupContext;
 import com.bgw.testing.server.util.BaseStringUtils;
+import com.bgw.testing.server.util.BeanCopyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.bgw.testing.server.config.ServerException;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -24,7 +23,7 @@ public class GroupService {
     @Autowired
     private TsGroupInfoMapper tsGroupInfoMapper;
     @Autowired
-    private TsCaseInfoMapper tsCaseInfoMapper;
+    private CaseService caseService;
 
     @PostConstruct
     public void initGroup() {
@@ -53,11 +52,9 @@ public class GroupService {
      * @return
      */
     public boolean isExistGroup(String groupId) {
-        TsGroupInfo tsGroupInfo = tsGroupInfoMapper.selectByPrimaryKey(groupId);
-        if (tsGroupInfo != null) {
-            return true;
-        }
-        return false;
+        return GroupContext.getInstance().getGroupInfoList()
+                .parallelStream()
+                .anyMatch(groupInfoDto -> groupInfoDto.getGroupId().equals(groupId));
     }
 
     /**
@@ -66,10 +63,29 @@ public class GroupService {
      * @return
      */
     private boolean isFinallyGroup(String groupId) {
-        if (tsGroupInfoMapper.selectByParentId(groupId).size() == 0) {
-            return true;
+        return GroupContext.getInstance().getGroupInfoList()
+                .parallelStream()
+                .anyMatch(groupInfoDto -> groupInfoDto.getParentId() != null
+                        && groupInfoDto.getParentId().equals(groupId));
+    }
+
+    public GroupInfoDto getAllChildGroupInfo(String groupId) {
+        GroupInfoDto groupInfoDto = GroupContext.getInstance().getGroupInfo(groupId).copy();
+        if (groupInfoDto != null && !groupInfoDto.getIsFinally()) {
+            List<GroupInfoDto> childGroup =
+                    BeanCopyUtil.convertList(GroupContext.getInstance().getGroupInfoList(), GroupInfoDto.class)
+                    .stream()
+                    .filter(tempGroupInfo -> StringUtils.isNotBlank(tempGroupInfo.getParentId())
+                            && tempGroupInfo.getParentId().equals(groupId))
+                    .collect(Collectors.toList());
+            childGroup.forEach(tempGroupInfo -> {
+                if (!tempGroupInfo.getIsFinally()) {
+                    tempGroupInfo.setGroupInfoDtos(getAllChildGroupInfo(tempGroupInfo.getGroupId()).getGroupInfoDtos());
+                }
+            });
+            groupInfoDto.setGroupInfoDtos(childGroup);
         }
-        return false;
+        return groupInfoDto;
     }
 
     /**
@@ -116,44 +132,51 @@ public class GroupService {
      * 删除组（有用例不能删）
      * @param groupId
      */
-    public String deleteGroupInfo(String groupId) {
-        TsGroupInfo oldTsGroupInfo = tsGroupInfoMapper.selectByPrimaryKey(groupId);
+    public void deleteGroupInfo(String groupId) {
+        //校验groupId是否存在
+        GroupInfoDto groupInfoDto = GroupContext.getInstance().getGroupInfo(groupId);
+        if (groupInfoDto == null) {
+            throw new ServerException(ErrorCode.NOT_EXIST, "groupId:" + groupId);
+        }
 
-        String result = deleteGroup(groupId);
+        //校验组内是否存在用例
+        boolean isExistCase = GroupContext.getInstance().getAllChildGroupId(groupId)
+                .parallelStream()
+                .anyMatch(tempGroupId -> caseService.getCaseInfoByGroupId(tempGroupId).size()>0);
+        if (isExistCase) {
+            throw new ServerException("4000", "组内用例不为空，不能删除");
+        }
 
-        GroupInfoDto oldGroupInfoDto = convertToGroupInfoDto(tsGroupInfoMapper.selectByPrimaryKey(oldTsGroupInfo.getParentId()));
-        GroupContext.getInstance().deleteGroupInfo(groupId,oldGroupInfoDto);
-        return result;
+        //删除组
+        List<String> groupIds = GroupContext.getInstance().getAllChildGroupId(groupId);
+        GroupContext.getInstance().getGroupInfoList().removeIf(temp -> groupIds.contains(temp.getGroupId()));
+        tsGroupInfoMapper.deleteByGroupIds(groupIds);
+
+        //更新父节点缓存
+        updateParentNode(groupInfoDto.getParentId());
     }
 
     /**
-     * 删除组（有用例不能删）
-     * @param groupId
+     * 更新父节点
+     * @param parentId
      */
-    @Transactional
-    public String deleteGroup(String groupId) {
-        String result = "";
-        List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectByParentId(groupId);
-        Integer childGroupNum = tsGroupInfos.size();
-        if (childGroupNum == 0){
-            Map params = new HashMap();
-            params.put("groupId", groupId);
-            List<TsCaseInfo> tsCaseInfos = tsCaseInfoMapper.selectByParams(params);
-            if(tsCaseInfos.size()==0){
-                tsGroupInfoMapper.deleteByPrimaryKey(groupId);
+    private void updateParentNode(String parentId) {
+        List<GroupInfoDto> groupInfos = GroupContext.getInstance().getGroupInfoList();
+        if (StringUtils.isNotBlank(parentId)) {
+            if (GroupContext.getInstance().getAllChildGroupId(parentId).size() > 1) {
+                groupInfos.forEach(groupInfo -> {
+                    if (groupInfo.getGroupId().equalsIgnoreCase(parentId)) {
+                        groupInfo.setIsFinally(false);
+                    }
+                });
+            } else {
+                groupInfos.forEach(groupInfo -> {
+                    if (groupInfo.getGroupId().equalsIgnoreCase(parentId)) {
+                        groupInfo.setIsFinally(true);
+                    }
+                });
             }
-            else{
-                throw new ServerException(ErrorCode.ALREADY_EXISTS,"组里的用例");
-            }
-        }else if(childGroupNum > 0){
-            int loop = 0;
-            while((loop < childGroupNum)&&(StringUtils.isBlank(result))){
-                result = deleteGroup(tsGroupInfos.get(loop).getId());
-                loop ++;
-            }
-            result = deleteGroup(groupId);
         }
-        return result;
     }
 
     private GroupInfoDto convertToGroupInfoDto(TsGroupInfo tsGroupInfo) {

@@ -20,10 +20,18 @@ public class GroupController {
     @Autowired
     private GroupService groupService;
 
-    @ApiOperation(value = "从缓存查询子组")
+    @Deprecated
+    @ApiOperation(value = "查询组")
     @RequestMapping(value = "/group/{group_id}", method = RequestMethod.GET)
     public List<GroupInfoDto> getChildGroupInfo(@PathVariable(value = "group_id") String groupId) {
         return groupService.getChildGroupInfo(groupId);
+    }
+
+
+    @ApiOperation(value = "查询组")
+    @RequestMapping(value = "/groups/{group_id}", method = RequestMethod.GET)
+    public GroupInfoDto getAllChildGroupInfo(@PathVariable(value = "group_id") String groupId) {
+        return groupService.getAllChildGroupInfo(groupId);
     }
 
     @ApiOperation(value = "新增组")
@@ -33,7 +41,7 @@ public class GroupController {
         return true;
     }
 
-    @ApiOperation(value = "更新组，移动组")
+    @ApiOperation(value = "更新组")
     @RequestMapping(value = "/group", method = RequestMethod.PUT)
     public boolean updateGroupInfo(@RequestBody @Valid GroupInfoDto groupInfoDto) {
         groupService.updateGroupInfo(groupInfoDto);

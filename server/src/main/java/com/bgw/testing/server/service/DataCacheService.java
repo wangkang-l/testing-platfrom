@@ -5,6 +5,8 @@ import com.bgw.testing.server.util.BaseJsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,7 +73,7 @@ public class DataCacheService {
      */
     public List<CaseInfoDto> getAllCaseListByGroupId(String groupId) {
         return redisService.hGetAll(DEFAULT_REDIS_DB, REDIS_KEY_TEST_CASE + groupId)
-                .keySet()
+                .values()
                 .stream()
                 .map(str -> BaseJsonUtils.readValue(str, CaseInfoDto.class))
                 .collect(Collectors.toList());

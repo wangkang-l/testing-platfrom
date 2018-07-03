@@ -26,5 +26,6 @@ public interface TsGroupInfoMapper {
 
     List<TsGroupInfo> selectAll();
 
+    int deleteByGroupIds(List<String> groupIds);
 
 }

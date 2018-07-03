@@ -20,6 +20,7 @@ public class GroupInfoDto {
     private String groupId;
 
     @NotEmpty(message = "组名称不能为空")
+    @JsonProperty(value = "label")
     @ApiModelProperty(value = "组名称")
     private String groupName;
 
@@ -28,7 +29,22 @@ public class GroupInfoDto {
     private String parentId;
 
     private int priority;
+    @JsonProperty(value = "is_leaf")
     private Boolean isFinally = true;
     private String path;
+    @JsonProperty(value = "children")
+    private List<GroupInfoDto> groupInfoDtos = new ArrayList<>();
+
+    public GroupInfoDto copy() {
+        GroupInfoDto groupInfoDto = new GroupInfoDto();
+        groupInfoDto.setGroupId(this.groupId);
+        groupInfoDto.setGroupName(this.groupName);
+        groupInfoDto.setParentId(this.parentId);
+        groupInfoDto.setIsFinally(this.isFinally);
+        groupInfoDto.setPriority(this.priority);
+        groupInfoDto.setPath(this.path);
+        groupInfoDto.setGroupInfoDtos(new ArrayList<>(this.groupInfoDtos));
+        return groupInfoDto;
+    }
 
 }

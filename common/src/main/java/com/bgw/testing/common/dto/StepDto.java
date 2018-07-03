@@ -36,7 +36,7 @@ public class StepDto {
 
     @NotEmpty(message = "步骤优先级不能为空")
     @ApiModelProperty(value = "步骤优先级")
-    private Integer priority;
+    private Integer priority = 0;
 
     @ApiModelProperty(value = "自定义方法")
     private String func;

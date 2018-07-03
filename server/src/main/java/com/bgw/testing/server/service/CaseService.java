@@ -1,6 +1,7 @@
 package com.bgw.testing.server.service;
 
 import com.bgw.testing.common.dto.*;
+import com.bgw.testing.common.enums.CaseStatus;
 import com.bgw.testing.common.enums.ErrorCode;
 import com.bgw.testing.common.enums.StepType;
 import com.bgw.testing.dao.mapper.bgw_automation.TsCaseInfoMapper;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -118,7 +120,7 @@ public class CaseService {
         caseInfoDto.setPrecondition(ContextUtils.fillValue(caseInfoDto.getPrecondition(), caseVariable, null));
         caseInfoDto.setDescription(ContextUtils.fillValue(caseInfoDto.getDescription(), caseVariable, null));
         //初始化用例临时变量
-        context.getTemporaryVariable(caseInfoDto.getCaseId()).putAll(ContextUtils.fillValue(caseInfoDto.getInitTemporaryVariables(), caseVariable, null));
+        context.initTemporaryVariable(caseInfoDto.getCaseId(), ContextUtils.fillValue(caseInfoDto.getInitTemporaryVariables(), caseVariable, null));
 
         //用例执行开始前报告赋值
         CaseReportDto caseReportDto = new CaseReportDto(caseInfoDto.getCaseId(), caseInfoDto.getCaseName());
@@ -183,6 +185,15 @@ public class CaseService {
     private StepReportDto runStep(StepDto stepDto) {
         //变量获取
         VariableContext context = VariableContext.getInstance();
+        //步骤变量初始化
+        context.initTemporaryVariable(stepDto.getStepId(),
+                ContextUtils.fillValue(
+                        stepDto.getInitTemporaryVariables(),
+                        context.getTemporaryVariable(stepDto.getCaseId()),
+                        context.getTemporaryVariable(stepDto.getStepId())
+                )
+        );
+
         Map<String, String> caseVariable = context.getTemporaryVariable(stepDto.getCaseId());
         Map<String, String> stepVariable = context.getTemporaryVariable(stepDto.getStepId());
 
@@ -339,11 +350,11 @@ public class CaseService {
     public PageInfo<CaseInfoDto> getCaseInfo(String groupId, int pageNum, int pageSize) {
         List<CaseInfoDto> caseInfoDtos = new ArrayList<>();
 
-        getAllChildGroup(groupId).forEach(groupInfoDto -> {
-            caseInfoDtos.addAll(sortingByPriorityAndUpdateTime(getCaseInfoByGroupId(groupInfoDto.getGroupId())));
+        getAllChildGroup(groupId).parallelStream().forEach(groupInfoDto -> {
+            caseInfoDtos.addAll(getCaseInfoByGroupId(groupInfoDto.getGroupId()));
         });
 
-        return new PageInfo<>(caseInfoDtos, pageNum, pageSize);
+        return new PageInfo<>(sortingByPriorityAndUpdateTime(caseInfoDtos), pageNum, pageSize);
     }
 
     /**
@@ -362,7 +373,6 @@ public class CaseService {
         String[] fields = new String[]{"path", "priority"};
         String[] orders = new String[]{"asc", "asc"};
         Collections.sort(groupInfoDtos, new MultiFieldSorting(fields, orders));
-
         return groupInfoDtos;
     }
 
@@ -386,7 +396,7 @@ public class CaseService {
      * @param groupId
      * @return
      */
-    private List<CaseInfoDto> getCaseInfoByGroupId(String groupId) {
+    public List<CaseInfoDto> getCaseInfoByGroupId(String groupId) {
         return dataCacheService.getAllCaseListByGroupId(groupId);
     }
 
@@ -419,11 +429,15 @@ public class CaseService {
     public void addCaseInfo(CaseInfoDto caseInfoDto) {
         checkCaseName(caseInfoDto);
         caseInfoDto.setCaseId(BaseStringUtils.uuidSimple());
+        caseInfoDto.setStatus(CaseStatus.NORMAL.status);
         caseInfoDto.setCreateTime(new Date());
         caseInfoDto.setCreateBy("System");
         caseInfoDto.setUpdateTime(new Date());
         caseInfoDto.setUpdateBy("System");
-        caseInfoDto.getSteps().forEach(stepDto -> stepService.addStepInfo(stepDto));
+        caseInfoDto.getSteps().forEach(stepDto -> {
+            stepDto.setCaseId(caseInfoDto.getCaseId());
+            stepService.addStepInfo(stepDto);
+        });
         tsCaseInfoMapper.insertSelective(convertToTsCaseInfo(caseInfoDto));
         dataCacheService.addOrUpdateCaseInfo(caseInfoDto);
     }

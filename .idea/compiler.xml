@@ -9,6 +9,9 @@
         <module name="common" />
         <module name="dao" />
         <module name="server" />
+        <module name="testing-common" />
+        <module name="testing-dao" />
+        <module name="testing-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -16,6 +19,9 @@
       <module name="dao" target="1.8" />
       <module name="server" target="1.8" />
       <module name="testing" target="10" />
+      <module name="testing-common" target="1.8" />
+      <module name="testing-dao" target="1.8" />
+      <module name="testing-server" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

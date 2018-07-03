@@ -47,6 +47,14 @@
     delete from ts_group_info
     where id = #{id,jdbcType=VARCHAR}
   </delete>
+  <delete id="deleteByGroupIds">
+    delete from ts_group_info
+    where id in
+    <foreach item="item" index="index" collection="list"
+             open="(" separator="," close=")">
+      #{groupIds}
+    </foreach>
+  </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsGroupInfo">
     insert into ts_group_info (id, group_name, parent_id,
       priority, create_time, create_by, 
