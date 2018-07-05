@@ -7,11 +7,15 @@ public class TsInterfaceBasicInfo {
 
     private String groupId;
 
-    private String description;
+    private String interfaceName;
+
+    private String interfaceDescription;
 
     private String path;
 
     private String method;
+
+    private String body;
 
     private Date createTime;
 
@@ -20,8 +24,6 @@ public class TsInterfaceBasicInfo {
     private Date updateTime;
 
     private String updateBy;
-
-    private String body;
 
     public String getId() {
         return id;
@@ -39,12 +41,20 @@ public class TsInterfaceBasicInfo {
         this.groupId = groupId == null ? null : groupId.trim();
     }
 
-    public String getDescription() {
-        return description;
+    public String getInterfaceName() {
+        return interfaceName;
     }
 
-    public void setDescription(String description) {
-        this.description = description == null ? null : description.trim();
+    public void setInterfaceName(String interfaceName) {
+        this.interfaceName = interfaceName == null ? null : interfaceName.trim();
+    }
+
+    public String getInterfaceDescription() {
+        return interfaceDescription;
+    }
+
+    public void setInterfaceDescription(String interfaceDescription) {
+        this.interfaceDescription = interfaceDescription == null ? null : interfaceDescription.trim();
     }
 
     public String getPath() {
@@ -61,6 +71,14 @@ public class TsInterfaceBasicInfo {
 
     public void setMethod(String method) {
         this.method = method == null ? null : method.trim();
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body == null ? null : body.trim();
     }
 
     public Date getCreateTime() {
@@ -93,13 +111,5 @@ public class TsInterfaceBasicInfo {
 
     public void setUpdateBy(String updateBy) {
         this.updateBy = updateBy == null ? null : updateBy.trim();
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body == null ? null : body.trim();
     }
 }

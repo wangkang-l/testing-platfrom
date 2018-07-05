@@ -4,59 +4,71 @@
   <resultMap id="BaseResultMap" type="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     <id column="id" jdbcType="VARCHAR" property="id" />
     <result column="group_id" jdbcType="VARCHAR" property="groupId" />
-    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="interface_name" jdbcType="VARCHAR" property="interfaceName" />
+    <result column="interface_description" jdbcType="VARCHAR" property="interfaceDescription" />
     <result column="path" jdbcType="VARCHAR" property="path" />
     <result column="method" jdbcType="VARCHAR" property="method" />
+    <result column="body" jdbcType="VARCHAR" property="body" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="create_by" jdbcType="VARCHAR" property="createBy" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
   </resultMap>
-  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
-    <result column="body" jdbcType="LONGVARCHAR" property="body" />
-  </resultMap>
   <sql id="Base_Column_List">
-    id,group_id, description, path, method, create_time, create_by, update_time, update_by
+    id, group_id, interface_name, interface_description, path, method, body, create_time, 
+    create_by, update_time, update_by
   </sql>
-  <sql id="Blob_Column_List">
-    body
-  </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from ts_interface_basic_info
     where id = #{id,jdbcType=VARCHAR}
   </select>
-  <select id="selectByDescription" parameterType="java.lang.String" resultMap="ResultMapWithBLOBs">
+  <select id="selectByParams" resultMap="BaseResultMap">
     select
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
+    <include refid="Base_Column_List"/>
     from ts_interface_basic_info
-    where description like concat(concat('%', #{description,jdbcType=VARCHAR}),'%')
+    <where>
+      <if test="groupId != null and groupId != ''">
+        group_id = #{groupId}
+      </if>
+      <if test="id != null and id != ''">
+        AND id = #{id}
+      </if>
+      <if test="var4 != null and var4 != ''">
+        AND interface_name like "%"#{var4}"%" OR interface_description like "%"#{var4}"%"
+      </if>
+    </where>
   </select>
-    <select id="selectAll" resultMap="ResultMapWithBLOBs">
-      select
-      <include refid="Base_Column_List" />
-      ,
-      <include refid="Blob_Column_List" />
-      from ts_interface_basic_info
-    </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+  <select id="selectByGroupIdAndInterfaceNameAndId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ts_interface_basic_info
+    <where>
+      <if test="groupId != null and groupId != ''">
+        group_id = #{groupId}
+      </if>
+      <if test="interfaceName != null and interfaceName != ''">
+        AND interface_name = #{interfaceName}
+      </if>
+      <if test="id != null and id != ''">
+        AND id != #{id}
+      </if>
+    </where>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_interface_basic_info
     where id = #{id,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
-    insert into ts_interface_basic_info (id, group_id,description, path,
-      method, create_time, create_by, 
-      update_time, update_by, body
-      )
-    values (#{id,jdbcType=VARCHAR},#{groupId,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR},
-      #{method,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR}, #{body,jdbcType=LONGVARCHAR}
-      )
+    insert into ts_interface_basic_info (id, group_id, interface_name, 
+      interface_description, path, method, 
+      body, create_time, create_by, 
+      update_time, update_by)
+    values (#{id,jdbcType=VARCHAR}, #{groupId,jdbcType=VARCHAR}, #{interfaceName,jdbcType=VARCHAR}, 
+      #{interfaceDescription,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, #{method,jdbcType=VARCHAR}, 
+      #{body,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     insert into ts_interface_basic_info
@@ -67,14 +79,20 @@
       <if test="groupId != null">
         group_id,
       </if>
-      <if test="description != null">
-        description,
+      <if test="interfaceName != null">
+        interface_name,
+      </if>
+      <if test="interfaceDescription != null">
+        interface_description,
       </if>
       <if test="path != null">
         path,
       </if>
       <if test="method != null">
         method,
+      </if>
+      <if test="body != null">
+        body,
       </if>
       <if test="createTime != null">
         create_time,
@@ -88,9 +106,6 @@
       <if test="updateBy != null">
         update_by,
       </if>
-      <if test="body != null">
-        body,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -99,14 +114,20 @@
       <if test="groupId != null">
         #{groupId,jdbcType=VARCHAR},
       </if>
-      <if test="description != null">
-        #{description,jdbcType=VARCHAR},
+      <if test="interfaceName != null">
+        #{interfaceName,jdbcType=VARCHAR},
+      </if>
+      <if test="interfaceDescription != null">
+        #{interfaceDescription,jdbcType=VARCHAR},
       </if>
       <if test="path != null">
         #{path,jdbcType=VARCHAR},
       </if>
       <if test="method != null">
         #{method,jdbcType=VARCHAR},
+      </if>
+      <if test="body != null">
+        #{body,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
@@ -120,9 +141,6 @@
       <if test="updateBy != null">
         #{updateBy,jdbcType=VARCHAR},
       </if>
-      <if test="body != null">
-        #{body,jdbcType=LONGVARCHAR},
-      </if>
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
@@ -131,14 +149,20 @@
       <if test="groupId != null">
         group_id = #{groupId,jdbcType=VARCHAR},
       </if>
-      <if test="description != null">
-        description = #{description,jdbcType=VARCHAR},
+      <if test="interfaceName != null">
+        interface_name = #{interfaceName,jdbcType=VARCHAR},
+      </if>
+      <if test="interfaceDescription != null">
+        interface_description = #{interfaceDescription,jdbcType=VARCHAR},
       </if>
       <if test="path != null">
         path = #{path,jdbcType=VARCHAR},
       </if>
       <if test="method != null">
         method = #{method,jdbcType=VARCHAR},
+      </if>
+      <if test="body != null">
+        body = #{body,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -152,31 +176,17 @@
       <if test="updateBy != null">
         update_by = #{updateBy,jdbcType=VARCHAR},
       </if>
-      <if test="body != null">
-        body = #{body,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=VARCHAR}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
-    update ts_interface_basic_info
-    set group_id = #{groupId，jdbcType=VARCHAR} ,
-    description = #{description,jdbcType=VARCHAR},
-      path = #{path,jdbcType=VARCHAR},
-      method = #{method,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      create_by = #{createBy,jdbcType=VARCHAR},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      update_by = #{updateBy,jdbcType=VARCHAR},
-      body = #{body,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo">
     update ts_interface_basic_info
-    set group_id = #{groupId，jdbcType=VARCHAR} ,
-    description = #{description,jdbcType=VARCHAR},
+    set group_id = #{groupId,jdbcType=VARCHAR},
+      interface_name = #{interfaceName,jdbcType=VARCHAR},
+      interface_description = #{interfaceDescription,jdbcType=VARCHAR},
       path = #{path,jdbcType=VARCHAR},
       method = #{method,jdbcType=VARCHAR},
+      body = #{body,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       create_by = #{createBy,jdbcType=VARCHAR},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

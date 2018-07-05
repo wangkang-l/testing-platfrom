@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
 @CrossOrigin
@@ -25,8 +26,9 @@ public class InterfaceController {
     @RequestMapping(value = "/interface/{group_id}", method = RequestMethod.GET)
     public PageInfo<InterfaceInfoDto> getInterfaceInfo(@PathVariable(value = "group_id") String groupId,
                                                        @RequestParam(value = "page_num") Integer pageNum,
-                                                       @RequestParam(value = "page_size") Integer pageSize) {
-        return interfaceService.getInterfaceInfo(groupId,pageNum,pageSize);
+                                                       @RequestParam(value = "page_size") Integer pageSize,
+                                                       @RequestParam String var4) {
+        return interfaceService.getInterfaceInfo(groupId, pageNum, pageSize, var4);
     }
 
     @ApiOperation(value = "新增接口")
@@ -37,16 +39,26 @@ public class InterfaceController {
     }
 
     @ApiOperation(value = "更新接口")
-    @RequestMapping(value = "/interface", method = RequestMethod.PUT)
-    public boolean updateInterfaceInfo(@RequestBody @Valid InterfaceInfoDto interfaceInfoDto) {
-        interfaceService.updateInterfaceInfo(interfaceInfoDto);
+    @RequestMapping(value = "/interface/{interface_id}", method = RequestMethod.PUT)
+    public boolean updateInterfaceInfo(@PathVariable(value = "interface_id") String interfaceId,
+                                       @RequestBody @Valid InterfaceInfoDto interfaceInfoDto) {
+        interfaceService.updateInterfaceInfo(interfaceId, interfaceInfoDto);
         return true;
     }
 
     @ApiOperation(value = "删除接口")
     @RequestMapping(value = "/interface/{interface_id}", method = RequestMethod.DELETE)
-    public boolean deleteInterfaceInfo(@RequestParam String groupId,@PathVariable(value = "interface_id") String interfaceId) {
-        interfaceService.deleteInterfaceInfo(groupId,interfaceId);
+    public boolean deleteInterfaceInfo(@PathVariable(value = "interface_id") String interfaceId) {
+        interfaceService.deleteInterfaceInfo(interfaceId);
+        return true;
+    }
+
+    @ApiOperation(value = "移动测试用例")
+    @RequestMapping(value = "/interface", method = RequestMethod.PATCH)
+    public Boolean moveInterface(
+            @RequestParam(value = "interface_ids") List<String> interfaceIds,
+            @RequestParam(value = "new_group_id") String newGroupId) {
+        interfaceService.moveInterface(interfaceIds, newGroupId);
         return true;
     }
 }

@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.bgw.testing.server.config.ServerException;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,8 +24,7 @@ public class GroupService {
     @Autowired
     private CaseService caseService;
 
-    @PostConstruct
-    public void initGroup() {
+    public void initGroupInfo() {
         List<TsGroupInfo> tsGroupInfos = tsGroupInfoMapper.selectAll();
         List<GroupInfoDto> groupInfoDtos = new ArrayList<>();
         if (tsGroupInfos != null && tsGroupInfos.size() > 0) {
@@ -128,6 +126,7 @@ public class GroupService {
         GroupInfoDto oldGroupInfoDto = convertToGroupInfoDto(tsGroupInfoMapper.selectByPrimaryKey(oldTsGroupInfo.getParentId()));
         GroupContext.getInstance().updateGroupInfo(convertToGroupInfoDto(tsGroupInfo),oldGroupInfoDto);
     }
+
     /**
      * 删除组（有用例不能删）
      * @param groupId
@@ -160,7 +159,7 @@ public class GroupService {
      * 更新父节点
      * @param parentId
      */
-    private void updateParentNode(String parentId) {
+    public void updateParentNode(String parentId) {
         List<GroupInfoDto> groupInfos = GroupContext.getInstance().getGroupInfoList();
         if (StringUtils.isNotBlank(parentId)) {
             if (GroupContext.getInstance().getAllChildGroupId(parentId).size() > 1) {

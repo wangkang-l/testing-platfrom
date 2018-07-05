@@ -1,10 +1,10 @@
 package com.bgw.testing.dao.mapper.bgw_automation;
 
 import com.bgw.testing.dao.pojo.bgw_automation.TsDictionary;
+
 import java.util.List;
 
 public interface TsDictionaryMapper {
-
     int deleteByPrimaryKey(String id);
 
     int insert(TsDictionary record);
@@ -17,5 +17,5 @@ public interface TsDictionaryMapper {
 
     int updateByPrimaryKey(TsDictionary record);
 
-    List<TsDictionary> selectBydictType(String dictType);
+    List<TsDictionary> selectByDictType(String dictType);
 }

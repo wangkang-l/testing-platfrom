@@ -14,7 +14,7 @@
     <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, dict_type, dict_no, dict_value, remark, order_no, create_time, create_by, update_time, 
+    id, dict_type, dict_no, dict_value, remark, order_no, create_time, create_by, update_time,
     update_by
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -23,17 +23,22 @@
     from ts_dictionary
     where id = #{id,jdbcType=VARCHAR}
   </select>
+  <select id="selectByDictType" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from ts_dictionary
+    where dict_type = #{dictType}
+  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_dictionary
     where id = #{id,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsDictionary">
     insert into ts_dictionary (id, dict_type, dict_no, 
-      dict_value, remark, order_no, 
+      dict_value, remark, order_no,
       create_time, create_by, update_time, 
       update_by)
     values (#{id,jdbcType=VARCHAR}, #{dictType,jdbcType=VARCHAR}, #{dictNo,jdbcType=VARCHAR}, 
-      #{dictValue,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{orderNo,jdbcType=INTEGER}, 
+      #{dictValue,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{orderNo,jdbcType=INTEGER},
       #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, 
       #{updateBy,jdbcType=VARCHAR})
   </insert>
@@ -120,7 +125,7 @@
         remark = #{remark,jdbcType=VARCHAR},
       </if>
       <if test="orderNo != null">
-        order_no = #{orderNo,jdbcType=INTEGER},
+        order = #{orderNo,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -150,9 +155,4 @@
       update_by = #{updateBy,jdbcType=VARCHAR}
     where id = #{id,jdbcType=VARCHAR}
   </update>
-
-  <select id="selectBydictType" resultMap="BaseResultMap" parameterType="java.util.Map">
-    select * from ts_dictionary where dict_type = #{dictType}
-  </select>
-
 </mapper>

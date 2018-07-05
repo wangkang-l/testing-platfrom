@@ -139,7 +139,7 @@
 				<configuration>
 					<executable>true</executable>
 					<mainClass>com.bgw.testing.server.TestingApplication</mainClass>
-					<finalName>0.0.1-SNAPSHOT</finalName>
+					<finalName>testing-platform-0.0.1</finalName>
 					<layout>JAR</layout>
 				</configuration>
 				<executions>

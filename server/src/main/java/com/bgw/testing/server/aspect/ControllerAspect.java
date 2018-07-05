@@ -38,7 +38,7 @@ public class ControllerAspect {
                 request.getRequestURL().toString(),
                 request.getMethod(),
                 joinPoint.getSignature().getDeclaringTypeName() + "." + joinPoint.getSignature().getName(),
-                Arrays.toString(joinPoint.getArgs()));
+                BaseJsonUtils.writeValue(joinPoint.getArgs()));
     }
 
 
@@ -96,10 +96,12 @@ public class ControllerAspect {
      * @param t
      * @return
      */
-    public static String getTrace(Throwable t) {
+    private static String getTrace(Throwable t) {
         StringWriter stringWriter= new StringWriter();
         PrintWriter writer= new PrintWriter(stringWriter);
-        writer.append(((ServerException)t).getErrorMsg() + "-");
+        if (t.getClass().equals(ServerException.class)) {
+            writer.append(((ServerException) t).getErrorMsg()).append(System.getProperty("line.separator"));
+        }
         t.printStackTrace(writer);
         StringBuffer buffer= stringWriter.getBuffer();
         return buffer.toString();

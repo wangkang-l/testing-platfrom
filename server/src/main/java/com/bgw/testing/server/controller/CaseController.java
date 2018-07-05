@@ -31,12 +31,13 @@ public class CaseController {
         return true;
     }
 
-    @ApiOperation(value = "根据组ID获取用例信息")
+    @ApiOperation(value = "用例查询")
     @RequestMapping(value = "/case/{group_id}", method = RequestMethod.GET)
     public PageInfo<CaseInfoDto> getCaseInfo(@PathVariable(value = "group_id") String groupId,
                                              @RequestParam(value = "page_num") Integer pageNum,
-                                             @RequestParam(value = "page_size") Integer pageSize) {
-        return caseService.getCaseInfo(groupId, pageNum, pageSize);
+                                             @RequestParam(value = "page_size") Integer pageSize,
+                                             @RequestParam(required = false) String var4) {
+        return caseService.getCaseInfo(groupId, pageNum, pageSize, var4);
     }
 
     @ApiOperation(value = "新增用例信息")

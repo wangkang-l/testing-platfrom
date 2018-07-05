@@ -52,7 +52,7 @@
     where id in
     <foreach item="item" index="index" collection="list"
              open="(" separator="," close=")">
-      #{groupIds}
+      #{item}
     </foreach>
   </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsGroupInfo">

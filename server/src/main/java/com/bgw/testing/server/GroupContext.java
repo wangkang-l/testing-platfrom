@@ -96,10 +96,9 @@ public class GroupContext {
         if (groupInfoDtos != null && groupInfoDtos.size() > 0) {
             groupInfoList.addAll(groupInfoDtos);
         }
-        groupInfoList.forEach(groupInfo -> {
+        groupInfoList.parallelStream().forEach(groupInfo -> {
             groupInfo.setPath(getCompleteGroupPath(groupInfo.getGroupId()));
         });
-
     }
 
     public void addGroupInfo(GroupInfoDto groupInfoDto){

@@ -1,8 +1,8 @@
 package com.bgw.testing.common.enums;
 
 public enum InterfaceParamType {
-    QUERY("query", "QueryParam"),
-    HEADER("header", "HeaderParam");
+    QUERY("QUERY", "query类型参数"),
+    HEADER("HEADER", "header头参数");
 
     public String type;
     public String description;

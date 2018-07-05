@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class CaseReportDto {
     @JsonFormat(pattern="yyyy-MM-dd hh:mm:ss", timezone = "GMT+8")
     private Date endTime;
 
-    private List<StepReportDto> stepReportDtoList;
+    private List<StepReportDto> stepReportDtoList = new ArrayList<>();
 
     public CaseReportDto() {}
 

@@ -33,7 +33,6 @@ public class VariableService {
     /**
      * 变量初始化
      */
-    @PostConstruct
     public void initVariable() {
         //初始化全局变量
         Map<String, Object> params = new HashMap<>();
@@ -67,26 +66,30 @@ public class VariableService {
         List<TsVariableList> tsVariableLists = VariableContext.getInstance().getAllVariableList();
 
         //根据变量类型过滤
-        List<VariableInfoDto> variableInfoDtos = tsVariableLists.parallelStream()
+        tsVariableLists = tsVariableLists.parallelStream()
                 .filter(tsVariableList -> tsVariableList.getType().equals(type))
-                .map(this::convertToVariableInfoDto)
                 .collect(Collectors.toList());
 
         //根据环境ID过滤
         if (type.equals(VariableType.ENVIRONMENT.type) && StringUtils.isNotBlank(environmentId)) {
-            variableInfoDtos = variableInfoDtos.parallelStream()
-                    .filter(variableInfoDto -> variableInfoDto.getEnvironmentId().equals(environmentId))
+            tsVariableLists = tsVariableLists.parallelStream()
+                    .filter(tsVariableList -> tsVariableList.getEnvironmentId().equals(environmentId))
                     .collect(Collectors.toList());
         }
 
         //模糊查询
         if (StringUtils.isNotBlank(var4)) {
-            variableInfoDtos = variableInfoDtos.parallelStream()
-                    .filter(variableInfoDto -> variableInfoDto.getConfigKey().contains(var4)
-                            || variableInfoDto.getConfigValue().contains(var4)
-                            || variableInfoDto.getRemark().contains(var4))
+            tsVariableLists = tsVariableLists.parallelStream()
+                    .filter(tsVariableList -> tsVariableList.getConfigKey().contains(var4)
+                            || tsVariableList.getConfigValue().contains(var4)
+                            || tsVariableList.getRemark().contains(var4))
                     .collect(Collectors.toList());
         }
+
+        List<VariableInfoDto> variableInfoDtos = tsVariableLists
+                .parallelStream()
+                .map(this::convertToVariableInfoDto)
+                .collect(Collectors.toList());
 
         return new PageInfo<>(variableInfoDtos, pageNum, pageSize);
     }

@@ -4,6 +4,7 @@ import com.bgw.testing.common.enums.ErrorCode;
 import com.bgw.testing.server.VariableContext;
 import com.bgw.testing.server.config.ServerException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,18 +18,22 @@ public class ContextUtils {
     private static final Pattern PLACE_HOLDER = Pattern.compile("\\$\\s*\\{(.*?)\\}");
 
     public static Map<String, String> fillValue(Map<String, String> initContent, Map<String, String> caseVariable, Map<String, String> stepVariable) {
-        initContent.keySet().forEach(key -> {
-            initContent.put(key, fillValue(initContent.get(key), caseVariable, stepVariable));
-        });
+        if (initContent != null && initContent.size() > 0) {
+            initContent.keySet().forEach(key -> {
+                initContent.put(key, fillValue(initContent.get(key), caseVariable, stepVariable));
+            });
+        }
         return initContent;
     }
 
     public static String fillValue(String var3, Map<String, String> caseVariable, Map<String, String> stepVariable) {
-        List<String> placeHolders  = splitPlaceHolder(var3);
-        for (String placeHolder : placeHolders) {
-            String realValue = getContextValue(placeHolder, caseVariable, stepVariable);
-            log.info("占位符:{},实际值:{}", placeHolder, realValue);
-            var3 = var3.replaceAll("\\$\\{" + placeHolder + "\\}", realValue);
+        if (StringUtils.isNotBlank(var3)) {
+            List<String> placeHolders  = splitPlaceHolder(var3);
+            for (String placeHolder : placeHolders) {
+                String realValue = getContextValue(placeHolder, caseVariable, stepVariable);
+                log.info("占位符:{},实际值:{}", placeHolder, realValue);
+                var3 = var3.replaceAll("\\$\\{" + placeHolder + "\\}", realValue);
+            }
         }
         return var3;
     }

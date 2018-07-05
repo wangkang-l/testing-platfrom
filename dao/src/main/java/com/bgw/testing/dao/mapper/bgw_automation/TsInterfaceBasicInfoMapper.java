@@ -1,7 +1,10 @@
 package com.bgw.testing.dao.mapper.bgw_automation;
 
 import com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceBasicInfo;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
+import java.util.Map;
 
 public interface TsInterfaceBasicInfoMapper {
     int deleteByPrimaryKey(String id);
@@ -12,13 +15,13 @@ public interface TsInterfaceBasicInfoMapper {
 
     TsInterfaceBasicInfo selectByPrimaryKey(String id);
 
-    int updateByPrimaryKeySelective(TsInterfaceBasicInfo record);
+    List<TsInterfaceBasicInfo> selectByGroupIdAndInterfaceNameAndId(@Param(value = "groupId") String groupId,
+                                                               @Param(value = "interfaceName") String interfaceName,
+                                                               @Param(value = "id") String id);
 
-    int updateByPrimaryKeyWithBLOBs(TsInterfaceBasicInfo record);
+    int updateByPrimaryKeySelective(TsInterfaceBasicInfo record);
 
     int updateByPrimaryKey(TsInterfaceBasicInfo record);
 
-    List<TsInterfaceBasicInfo> selectByDescription(String description);
-
-    List<TsInterfaceBasicInfo> selectAll();
+    List<TsInterfaceBasicInfo> selectByParams(Map params);
 }

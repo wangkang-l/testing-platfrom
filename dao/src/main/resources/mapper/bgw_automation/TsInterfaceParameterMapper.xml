@@ -7,14 +7,15 @@
     <result column="parameter_type" jdbcType="VARCHAR" property="parameterType" />
     <result column="key" jdbcType="VARCHAR" property="key" />
     <result column="value" jdbcType="VARCHAR" property="value" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="create_by" jdbcType="VARCHAR" property="createBy" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, interface_id, parameter_type, `key`, `value`, create_time, create_by, update_time,
-    update_by
+    id, interface_id, parameter_type, key, value, description, create_time, create_by, 
+    update_time, update_by
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select 
@@ -22,11 +23,18 @@
     from ts_interface_parameter
     where id = #{id,jdbcType=VARCHAR}
   </select>
-  <select id="selectByInterfaceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+  <select id="selectByParams" resultMap="BaseResultMap">
     select
-    <include refid="Base_Column_List" />
+    <include refid="Base_Column_List"/>
     from ts_interface_parameter
-    where interface_id = #{interfaceId,jdbcType=VARCHAR} and parameter_type = #{parameterType,jdbcType=VARCHAR}
+    <where>
+      <if test="interfaceId != null and interfaceId != ''">
+        interface_id = #{interfaceId}
+      </if>
+      <if test="parameterType != null and parameterType != ''">
+        AND parameter_type = #{parameterType}
+      </if>
+    </where>
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from ts_interface_parameter
@@ -34,17 +42,17 @@
   </delete>
   <delete id="deleteByInterfaceId">
     delete from ts_interface_parameter
-    where interface_id = #{interfaceId,jdbcType=VARCHAR}
+    where interface_id = #{interfaceId}
   </delete>
   <insert id="insert" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceParameter">
     insert into ts_interface_parameter (id, interface_id, parameter_type, 
-      `key`, `value`, create_time,
-      create_by, update_time, update_by
-      )
+      key, value, description, 
+      create_time, create_by, update_time, 
+      update_by)
     values (#{id,jdbcType=VARCHAR}, #{interfaceId,jdbcType=VARCHAR}, #{parameterType,jdbcType=VARCHAR}, 
-      #{key,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{createBy,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR}
-      )
+      #{key,jdbcType=VARCHAR}, #{value,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{createBy,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{updateBy,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.bgw.testing.dao.pojo.bgw_automation.TsInterfaceParameter">
     insert into ts_interface_parameter
@@ -59,10 +67,13 @@
         parameter_type,
       </if>
       <if test="key != null">
-        `key`,
+        key,
       </if>
       <if test="value != null">
-        `value`,
+        value,
+      </if>
+      <if test="description != null">
+        description,
       </if>
       <if test="createTime != null">
         create_time,
@@ -93,6 +104,9 @@
       <if test="value != null">
         #{value,jdbcType=VARCHAR},
       </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -117,10 +131,13 @@
         parameter_type = #{parameterType,jdbcType=VARCHAR},
       </if>
       <if test="key != null">
-        `key` = #{key,jdbcType=VARCHAR},
+        key = #{key,jdbcType=VARCHAR},
       </if>
       <if test="value != null">
-        `value` = #{value,jdbcType=VARCHAR},
+        value = #{value,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -141,8 +158,9 @@
     update ts_interface_parameter
     set interface_id = #{interfaceId,jdbcType=VARCHAR},
       parameter_type = #{parameterType,jdbcType=VARCHAR},
-      `key` = #{key,jdbcType=VARCHAR},
-      `value` = #{value,jdbcType=VARCHAR},
+      key = #{key,jdbcType=VARCHAR},
+      value = #{value,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       create_by = #{createBy,jdbcType=VARCHAR},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

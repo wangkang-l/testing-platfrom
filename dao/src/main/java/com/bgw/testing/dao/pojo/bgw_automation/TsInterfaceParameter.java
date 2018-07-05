@@ -13,6 +13,8 @@ public class TsInterfaceParameter {
 
     private String value;
 
+    private String description;
+
     private Date createTime;
 
     private String createBy;
@@ -59,6 +61,14 @@ public class TsInterfaceParameter {
 
     public void setValue(String value) {
         this.value = value == null ? null : value.trim();
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description == null ? null : description.trim();
     }
 
     public Date getCreateTime() {

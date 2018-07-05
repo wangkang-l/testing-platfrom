@@ -34,17 +34,6 @@ public class DataCacheService {
     }
 
     /**
-     * 移动用例
-     * @param caseInfoDto
-     * @param newGroupId
-     */
-    public void moveCaseInfo(CaseInfoDto caseInfoDto, String newGroupId) {
-        redisService.hDel(DEFAULT_REDIS_DB, REDIS_KEY_TEST_CASE + caseInfoDto.getGroupId(), caseInfoDto.getCaseId());
-        caseInfoDto.setGroupId(newGroupId);
-        addOrUpdateCaseInfo(caseInfoDto);
-    }
-
-    /**
      * 删除用例
      * @param groupId
      * @param caseId
@@ -61,7 +50,7 @@ public class DataCacheService {
      */
     public List<CaseInfoDto> getAllCaseList() {
         return redisService.hGetAll(DEFAULT_REDIS_DB, REDIS_KEY_TEST_CASE_LIST)
-                .keySet()
+                .values()
                 .stream()
                 .map(str -> BaseJsonUtils.readValue(str, CaseInfoDto.class))
                 .collect(Collectors.toList());
@@ -80,7 +69,7 @@ public class DataCacheService {
     }
 
     /**
-     * 获取可继承用例内容
+     * 获取用例内容
      * @param caseId
      * @return
      */

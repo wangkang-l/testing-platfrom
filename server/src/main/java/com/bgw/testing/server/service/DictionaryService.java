@@ -1,5 +1,6 @@
 package com.bgw.testing.server.service;
 
+import com.bgw.testing.common.dto.DictionaryDto;
 import com.bgw.testing.dao.mapper.bgw_automation.TsDictionaryMapper;
 import com.bgw.testing.dao.pojo.bgw_automation.TsDictionary;
 import com.bgw.testing.server.util.BaseStringUtils;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DictionaryService {
@@ -22,11 +24,12 @@ public class DictionaryService {
      * @param dictType
      * @return
      */
-    public List<TsDictionary> getDictionaryByDictType(String dictType){
-
-        List<TsDictionary> tsDictionaries = tsDictionaryMapper.selectBydictType(dictType);
+    public List<DictionaryDto> getDictionaryByDictType(String dictType){
+        List<TsDictionary> tsDictionaries = tsDictionaryMapper.selectByDictType(dictType);
         if (tsDictionaries != null && tsDictionaries.size() > 0) {
-            return tsDictionaries;
+            return tsDictionaries.parallelStream()
+                    .map(this::convertToDictionaryDto)
+                    .collect(Collectors.toList());
         }
         return new ArrayList<>();
     }
@@ -36,7 +39,8 @@ public class DictionaryService {
      * @add TsDictionary
      * @return
      */
-    public void addDictionary(TsDictionary tsDictionary){
+    public void addDictionary(DictionaryDto dictionaryDto){
+        TsDictionary tsDictionary = convertToTsDictionary(dictionaryDto);
         tsDictionary.setId(BaseStringUtils.uuidSimple());
         tsDictionary.setCreateTime(new Date());
         tsDictionary.setCreateBy("System");
@@ -59,12 +63,33 @@ public class DictionaryService {
      * @set Dictionaryid
      * @Void
      */
-    public void updateDictionary(TsDictionary tsDictionary){
-
+    public void updateDictionary(DictionaryDto dictionaryDto){
+        TsDictionary tsDictionary = convertToTsDictionary(dictionaryDto);
         tsDictionary.setUpdateTime(new Date());
         tsDictionary.setUpdateBy("System");
         tsDictionaryMapper.updateByPrimaryKey(tsDictionary);
+    }
 
+    private DictionaryDto convertToDictionaryDto(TsDictionary tsDictionary) {
+        DictionaryDto dictionaryDto = new DictionaryDto();
+        dictionaryDto.setDictId(tsDictionary.getId());
+        dictionaryDto.setDictType(tsDictionary.getDictType());
+        dictionaryDto.setDictNo(tsDictionary.getDictNo());
+        dictionaryDto.setDictValue(tsDictionary.getDictValue());
+        dictionaryDto.setOrder(tsDictionary.getOrderNo());
+        dictionaryDto.setRemark(tsDictionary.getRemark());
+        return dictionaryDto;
+    }
+
+    private TsDictionary convertToTsDictionary(DictionaryDto dictionaryDto) {
+        TsDictionary tsDictionary = new TsDictionary();
+        tsDictionary.setId(dictionaryDto.getDictId());
+        tsDictionary.setDictType(dictionaryDto.getDictType());
+        tsDictionary.setDictNo(dictionaryDto.getDictNo());
+        tsDictionary.setDictValue(dictionaryDto.getDictValue());
+        tsDictionary.setOrderNo(dictionaryDto.getOrder());
+        tsDictionary.setRemark(dictionaryDto.getRemark());
+        return tsDictionary;
     }
 
 }

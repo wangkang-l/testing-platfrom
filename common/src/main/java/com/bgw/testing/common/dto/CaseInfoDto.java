@@ -31,6 +31,9 @@ public class CaseInfoDto {
     @ApiModelProperty(value = "用例名称")
     private String caseName;
 
+    @ApiModelProperty(value = "用例路径")
+    private String casePath;
+
     @NotEmpty(message = "用例说明不能为空")
     @ApiModelProperty(value = "用例说明")
     private String description;

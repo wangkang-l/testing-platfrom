@@ -18,8 +18,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,12 +43,6 @@ public class CaseService {
     private ReportService reportService;
 
     private static Pattern PATTERN_METHOD = Pattern.compile("([^(]*)(?:\\((.*)\\))?");
-
-    @PostConstruct
-    public void initCaseInfo() {
-        dataCacheService.clearCaseInfo();
-        initAllCaseInfo();
-    }
 
     /**
      * 指定组执行用例
@@ -313,7 +305,7 @@ public class CaseService {
         }
 
         //使用verifier对step进行校验
-        if (stepReportDto.getResult()) {
+        if (stepReportDto.getResult() && stepDto.getVerifiers() != null && stepDto.getVerifiers().size() > 0) {
             try {
                 stepDto.getVerifiers().forEach(verifier -> {
                     if (!ConditionUtils.verify(verifier.getCondition())) {
@@ -347,14 +339,28 @@ public class CaseService {
      * @param pageSize
      * @return
      */
-    public PageInfo<CaseInfoDto> getCaseInfo(String groupId, int pageNum, int pageSize) {
-        List<CaseInfoDto> caseInfoDtos = new ArrayList<>();
+    public PageInfo<CaseInfoDto> getCaseInfo(String groupId, int pageNum, int pageSize, String var4) {
 
-        getAllChildGroup(groupId).parallelStream().forEach(groupInfoDto -> {
-            caseInfoDtos.addAll(getCaseInfoByGroupId(groupInfoDto.getGroupId()));
+        List<String> groupIds = GroupContext.getInstance().getAllChildGroupId(groupId);
+        List<CaseInfoDto> caseInfoDtos = new ArrayList<>();
+        groupIds.parallelStream().forEach(tempGroupId -> {
+            caseInfoDtos.addAll(getCaseInfoByGroupId(tempGroupId));
         });
 
-        return new PageInfo<>(sortingByPriorityAndUpdateTime(caseInfoDtos), pageNum, pageSize);
+        List<CaseInfoDto> finalCaseInfo = caseInfoDtos;
+        finalCaseInfo.parallelStream().forEach(caseInfoDto -> {
+            String path = GroupContext.getInstance().getGroupInfo(caseInfoDto.getGroupId()).getPath();
+            caseInfoDto.setCasePath(path);
+        });
+
+        if (StringUtils.isNotBlank(var4)) {
+            finalCaseInfo = finalCaseInfo.stream()
+                    .filter(caseInfoDto -> caseInfoDto.getCaseName().contains(var4)
+                            || caseInfoDto.getCasePath().contains(var4))
+                    .collect(Collectors.toList());
+        }
+
+        return new PageInfo<>(sortingByPriorityAndUpdateTime(finalCaseInfo), pageNum, pageSize);
     }
 
     /**
@@ -380,10 +386,11 @@ public class CaseService {
      * 初始化所有用例信息
      * @return
      */
-    private void initAllCaseInfo() {
+    public void initAllCaseInfo() {
         List<TsCaseInfo> tsCaseInfos = tsCaseInfoMapper.selectAll();
-        List<CaseInfoDto> caseInfoDtos = tsCaseInfos.stream().map(this::convertToCaseInfoDto).collect(Collectors.toList());
-
+        List<CaseInfoDto> caseInfoDtos = tsCaseInfos.parallelStream()
+                .map(this::convertToCaseInfoDto)
+                .collect(Collectors.toList());
         if (caseInfoDtos != null && caseInfoDtos.size() > 0) {
             caseInfoDtos.forEach(caseInfoDto -> {
                 dataCacheService.addOrUpdateCaseInfo(caseInfoDto);
@@ -415,8 +422,8 @@ public class CaseService {
      * @return
      */
     private List<CaseInfoDto> sortingByPriorityAndUpdateTime(List<CaseInfoDto> caseInfoDtos) {
-        String[] fields = new String[]{"priority", "updateTime"};
-        String[] orders = new String[]{"asc", "desc"};
+        String[] fields = new String[]{"casePath", "priority", "updateTime"};
+        String[] orders = new String[]{"asc", "asc", "desc"};
         Collections.sort(caseInfoDtos, new MultiFieldSorting(fields, orders));
         return caseInfoDtos;
     }
@@ -427,13 +434,13 @@ public class CaseService {
      */
     @Transactional
     public void addCaseInfo(CaseInfoDto caseInfoDto) {
-        checkCaseName(caseInfoDto);
         caseInfoDto.setCaseId(BaseStringUtils.uuidSimple());
         caseInfoDto.setStatus(CaseStatus.NORMAL.status);
         caseInfoDto.setCreateTime(new Date());
         caseInfoDto.setCreateBy("System");
         caseInfoDto.setUpdateTime(new Date());
         caseInfoDto.setUpdateBy("System");
+        checkCaseName(caseInfoDto);
         caseInfoDto.getSteps().forEach(stepDto -> {
             stepDto.setCaseId(caseInfoDto.getCaseId());
             stepService.addStepInfo(stepDto);
@@ -448,12 +455,16 @@ public class CaseService {
      */
     @Transactional
     public void updateCaseInfo(CaseInfoDto caseInfoDto) {
-        checkCaseName(caseInfoDto);
-        caseInfoDto.setUpdateTime(new Date());
-        caseInfoDto.setUpdateBy("System");
-        caseInfoDto.getSteps().forEach(stepDto -> stepService.updateStepInfo(stepDto));
-        tsCaseInfoMapper.updateByPrimaryKeySelective(convertToTsCaseInfo(caseInfoDto));
-        dataCacheService.addOrUpdateCaseInfo(caseInfoDto);
+        if (StringUtils.isNotBlank(caseInfoDto.getCaseId()) && dataCacheService.getCaseInfo(caseInfoDto.getCaseId()) != null) {
+            checkCaseName(caseInfoDto);
+            caseInfoDto.setUpdateTime(new Date());
+            caseInfoDto.setUpdateBy("System");
+            caseInfoDto.getSteps().forEach(stepDto -> stepService.updateStepInfo(stepDto));
+            tsCaseInfoMapper.updateByPrimaryKeySelective(convertToTsCaseInfo(caseInfoDto));
+            dataCacheService.addOrUpdateCaseInfo(caseInfoDto);
+        } else {
+            throw new ServerException("4000", "用例ID为空或用例不存在");
+        }
     }
 
     /**
@@ -467,18 +478,18 @@ public class CaseService {
         }
 
         List<CaseInfoDto> data = dataCacheService.getAllCaseList()
-                .stream()
+                .parallelStream()
                 .filter(caseInfoDto -> caseIds.contains(caseInfoDto.getCaseId()))
                 .collect(Collectors.toList());
 
         data.parallelStream().forEach(caseInfoDto -> {
+            dataCacheService.delCaseInfo(caseInfoDto.getGroupId(), caseInfoDto.getCaseId());
             caseInfoDto.setGroupId(newGroupId);
             caseInfoDto.setUpdateTime(new Date());
             caseInfoDto.setUpdateBy("System");
             tsCaseInfoMapper.updateByPrimaryKeySelective(convertToTsCaseInfo(caseInfoDto));
-            dataCacheService.moveCaseInfo(caseInfoDto, newGroupId);
+            dataCacheService.addOrUpdateCaseInfo(caseInfoDto);
         });
-
     }
 
     /**
@@ -508,7 +519,8 @@ public class CaseService {
     private void checkCaseName(CaseInfoDto caseInfoDto) {
         List<CaseInfoDto> caseInfoDtos = getCaseInfoByGroupId(caseInfoDto.getGroupId());
         long count = caseInfoDtos.stream()
-                .filter(temp -> temp.getCaseName().equals(caseInfoDto.getCaseName().trim()))
+                .filter(temp -> !temp.getCaseId().equals(caseInfoDto.getCaseId())
+                        && temp.getCaseName().equals(caseInfoDto.getCaseName().trim()))
                 .count();
         if (count > 0) {
             throw new ServerException(ErrorCode.ALREADY_EXISTS, "用例名称：" + caseInfoDto.getCaseName());
